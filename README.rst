@@ -1,15 +1,6 @@
 .. toctree::
    :maxdepth: 3
 
-::
-
-    ___________.__                   __  .__         .____                      _____                                   .___            
-    \_   _____/|  | _____    _______/  |_|__| ____   |    |    ____   ____     /  _  \ ______ ______   ____   ____    __| _/___________ 
-     |    __)_ |  | \__  \  /  ___/\   __\  |/ ___\  |    |   /  _ \ / ___\   /  /_\  \\____ \\____ \_/ __ \ /    \  / __ |/ __ \_  __ \
-     |        \|  |__/ __ \_\___ \  |  | |  \  \___  |    |__(  <_> ) /_/  > /    |    \  |_> >  |_> >  ___/|   |  \/ /_/ \  ___/|  | \/
-    /_______  /|____(____  /____  > |__| |__|\___  > |_______ \____/\___  /  \____|__  /   __/|   __/ \___  >___|  /\____ |\___  >__|   
-        \/           \/     \/               \/          \/    /_____/           \/|__|   |__|        \/     \/      \/    \/       
-
 Python Elasticsearch Log handler
 ********************************
 
@@ -83,12 +74,10 @@ The constructors takes the following parameters:
 
     [{'host':'host1','port':9200}, {'host':'host2','port':9200}]
 
- - auth_type: The authentication currently support CMRESHandler.AuthType = NO_AUTH, BASIC_AUTH, KERBEROS_AUTH 
-
+ - auth_type: The authentication currently support CMRESHandler.AuthType = NO_AUTH, BASIC_AUTH, KERBEROS_AUTH
  - auth_details: When CMRESHandler.AuthType.BASIC_AUTH is used this argument must contain a tuple of string
-  with the user and password that will be used to authenticate against the Elasticsearch servers,
-  for example ('User','Password')
-
+ with the user and password that will be used to authenticate against the Elasticsearch servers,
+ for example ('User','Password')
  - use_ssl: A boolean that defines if the communications should use SSL encrypted communication
  - verify_ssl: A boolean that defines if the SSL certificates are validated or not
  - buffer_size: An int, Once this size is reached on the internal buffer results are flushed into ES
@@ -112,4 +101,4 @@ also done from logstash configuration, but it still requires to provide quite a 
 
 Contributing back
 -----------------
-
+Feel free to use this as is or even better, feel free to fork and send your pull requests over.
