@@ -13,10 +13,9 @@ The code source is in github at `https://github.com/cmanaha/python-elasticsearch
 
 Installation
 ============
-
 Install using pip::
-    pip install CRMESHandler
 
+    pip install CRMESHandler
 Requirements
 ============
 This library requires the following dependencies
