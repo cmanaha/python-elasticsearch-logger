@@ -1,4 +1,14 @@
-`Table of Contents`_
+.. toctree::
+   :maxdepth: 3
+
+::
+
+    ___________.__                   __  .__         .____                      _____                                   .___            
+    \_   _____/|  | _____    _______/  |_|__| ____   |    |    ____   ____     /  _  \ ______ ______   ____   ____    __| _/___________ 
+     |    __)_ |  | \__  \  /  ___/\   __\  |/ ___\  |    |   /  _ \ / ___\   /  /_\  \\____ \\____ \_/ __ \ /    \  / __ |/ __ \_  __ \
+     |        \|  |__/ __ \_\___ \  |  | |  \  \___  |    |__(  <_> ) /_/  > /    |    \  |_> >  |_> >  ___/|   |  \/ /_/ \  ___/|  | \/
+    /_______  /|____(____  /____  > |__| |__|\___  > |_______ \____/\___  /  \____|__  /   __/|   __/ \___  >___|  /\____ |\___  >__|   
+        \/           \/     \/               \/          \/    /_____/           \/|__|   |__|        \/     \/      \/    \/       
 
 Python Elasticsearch Log handler
 ********************************
@@ -89,13 +99,6 @@ The constructors takes the following parameters:
  - es_additional_fields: A dictionary with all the additional fields that you would like to add to the logs
 
 
-Django integration
-------------------
-
-
-
-
-
 Building the sources & Testing
 ------------------------------
 To create the package follow the standard python setup.py to compile.
@@ -103,6 +106,9 @@ To test, just execute the python tests within the test folder
 
 Why using an appender rather than logstash or beats
 ---------------------------------------------------
+In some cases is quite useful to provide all the information available within the LogRecords as it contains
+things such as exception information, the method, file, log line where the log was generated. All this can be
+also done from logstash configuration, but it still requires to provide quite a lot of context to 
 
 Contributing back
 -----------------
