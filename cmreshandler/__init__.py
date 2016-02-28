@@ -1,3 +1,3 @@
 from cmreshandler import CMRESHandler
 
-__all__ = ['CMRESHandler']
+__all__ = ['cmreshandler']
