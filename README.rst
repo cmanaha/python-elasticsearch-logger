@@ -4,7 +4,7 @@ CMRESHandler.py
 ===============
 
 |  |license| |versions| |status| |downloads|
-|  |ci_status| |codecov|
+|  |ci_status| |codecov| |gitter|
 
 
 Python Elasticsearch Log handler
@@ -127,3 +127,6 @@ Feel free to use this as is or even better, feel free to fork and send your pull
 .. |codecov| image:: https://codecov.io/github/cmanaha/python-elasticsearch-logger/coverage.svg?branch=master
     :target: http://codecov.io/github/cmanaha/python-elasticsearch-logger?branch=master
     :alt: Coverage!
+.. |gitter| image:: https://badges.gitter.im/Join%20Chat.svg
+    :target: https://gitter.im/cmanaha/python-elasticsearch-logger?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
+    :alt: gitter
