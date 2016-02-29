@@ -176,8 +176,8 @@ class CMRESHandler(logging.Handler):
                                actions=actions,
                                stats_only=True)
             except Exception as e:
-                if self.raise_exceptions:
-                    raise(e)
+                if self.raise_on_indexing_exceptions:
+                    raise e
             self._buffer = []
 
         self.__schedule_flush()
