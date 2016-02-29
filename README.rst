@@ -1,5 +1,10 @@
-.. toctree::
-   :maxdepth: 3
+
+===============
+CMRESHandler.py
+===============
+
+|  |license| |versions| |status|
+
 
 Python Elasticsearch Log handler
 ********************************
@@ -16,6 +21,7 @@ Installation
 Install using pip::
 
     pip install CRMESHandler
+
 Requirements
 ============
 This library requires the following dependencies
@@ -73,10 +79,9 @@ The constructors takes the following parameters:
 
     [{'host':'host1','port':9200}, {'host':'host2','port':9200}]
 
+
  - auth_type: The authentication currently support CMRESHandler.AuthType = NO_AUTH, BASIC_AUTH, KERBEROS_AUTH
- - auth_details: When CMRESHandler.AuthType.BASIC_AUTH is used this argument must contain a tuple of string
- with the user and password that will be used to authenticate against the Elasticsearch servers,
- for example ('User','Password')
+ - auth_details: When CMRESHandler.AuthType.BASIC_AUTH is used this argument must contain a tuple of string with the user and password that will be used to authenticate against the Elasticsearch servers, for example ('User','Password')
  - use_ssl: A boolean that defines if the communications should use SSL encrypted communication
  - verify_ssl: A boolean that defines if the SSL certificates are validated or not
  - buffer_size: An int, Once this size is reached on the internal buffer results are flushed into ES
@@ -101,3 +106,17 @@ also done from logstash configuration, but it still requires to provide quite a 
 Contributing back
 -----------------
 Feel free to use this as is or even better, feel free to fork and send your pull requests over.
+
+
+.. |downloads| image:: https://img.shields.io/pypi/dd/CMRESHandler.svg
+    :target: https://pypi.python.org/pypi/CMRESHandler
+    :alt: Daily PyPI downloads
+.. |versions| image:: https://img.shields.io/pypi/pyversions/CMRESHandler.svg
+    :target: https://pypi.python.org/pypi/CMRESHandler
+    :alt: Python versions supported
+.. |status| image:: https://img.shields.io/pypi/status/CMRESHandler.svg
+    :target: https://pypi.python.org/pypi/CMRESHandler
+    :alt: Package stability
+.. |license| image:: https://img.shields.io/pypi/l/CMRESHandler.svg
+    :target: https://pypi.python.org/pypi/CMRESHandler
+    :alt: License

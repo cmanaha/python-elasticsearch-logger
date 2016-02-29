@@ -3,7 +3,7 @@
 
 import logging
 from enum import Enum
-from elasticsearch import helpers as ESHelpers
+from elasticsearch import helpers as eshelpers
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_kerberos import HTTPKerberosAuth, DISABLED
 import datetime
@@ -42,12 +42,12 @@ class CMRESHandler(logging.Handler):
     __DEFAULT_ADDITIONAL_FIELDS = {}
     __DEFAULT_ES_INDEX_NAME = 'python_logger'
     __DEFAULT_ES_DOC_TYPE = 'python_log'
+    __DEFAULT_RAISE_ON_INDEXING_EXCEPTIONS = False
 
     __LOGGING_FILTER_FIELDS = ['msecs',
                                'relativeCreated',
                                'levelno',
                                'created']
-
 
     def __init__(self,
                  hosts=__DEFAULT_HOST,
@@ -59,7 +59,8 @@ class CMRESHandler(logging.Handler):
                  flush_frequency_in_sec=__DEFAULT_FLUSH_FREQUENCY_IN_SEC,
                  es_index_name=__DEFAULT_ES_INDEX_NAME,
                  es_doc_type=__DEFAULT_ES_DOC_TYPE,
-                 es_additional_fields=__DEFAULT_ADDITIONAL_FIELDS):
+                 es_additional_fields=__DEFAULT_ADDITIONAL_FIELDS,
+                 raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_INDEXING_EXCEPTIONS):
         """ Handler constructor
 
         :param hosts: The list of hosts that elasticsearch clients will connect. The list can be provided
@@ -81,6 +82,8 @@ class CMRESHandler(logging.Handler):
                     by default
         :param es_additional_fields: A dictionary with all the additional fields that you would like to add
                     to the logs, such the application, environment, etc.
+        :param raise_on_indexing_exceptions: A boolean, True only for debugging purposes to raise exceptions
+                    caused when
         :return: A ready to be used CMRESHandler.
         """
         logging.Handler.__init__(self)
@@ -97,6 +100,7 @@ class CMRESHandler(logging.Handler):
         self.es_additional_fileds = es_additional_fields.copy()
         self.es_additional_fileds.update({'host': socket.gethostname(),
                                           'host_ip': socket.gethostbyname(socket.gethostname())})
+        self.raise_on_indexing_exceptions = raise_on_indexing_exceptions
 
         self._buffer = []
         self._timer = None
@@ -143,20 +147,21 @@ class CMRESHandler(logging.Handler):
         """
         return "%s-%s" % (self.es_index_name, datetime.datetime.now().strftime('%Y.%m.%d'))
 
-    def __get_es_datetime_str(self, timestamp):
+    @staticmethod
+    def __get_es_datetime_str(timestamp):
         """ Returns elasticsearch utc formatted time for an epoch timestamp
 
         :param timestamp: epoch, including milliseconds
         :return: A string valid for elasticsearch time record
         """
         t = datetime.datetime.utcfromtimestamp(timestamp)
-        return "%s.%03.dZ" % (t.strftime('%Y-%m-%dT%H:%M:%S'), int(t.microsecond/1000))
+        return "%s.%03.dZ" % (t.strftime('%Y-%m-%dT%H:%M:%S'), int(t.microsecond / 1000))
 
     def flush(self):
         """ Flushes the buffer into ES
         :return: None
         """
-        if not self._timer is None and self._timer.is_alive():
+        if self._timer is not None and self._timer.is_alive():
             self._timer.cancel()
         self._timer = None
 
@@ -167,11 +172,12 @@ class CMRESHandler(logging.Handler):
                                          '_type': self.es_doc_type,
                                          '_source': x},
                               self._buffer)
-                results = ESHelpers.bulk(client=self.__get_es_client(),
-                                         actions=actions,
-                                         stats_only=True)
+                eshelpers.bulk(client=self.__get_es_client(),
+                               actions=actions,
+                               stats_only=True)
             except Exception as e:
-                pass
+                if self.raise_exceptions:
+                    raise(e)
             self._buffer = []
 
         self.__schedule_flush()
@@ -195,11 +201,10 @@ class CMRESHandler(logging.Handler):
         """
         rec = self.es_additional_fileds.copy()
         for k, v in record.__dict__.items():
-            if not k in CMRESHandler.__LOGGING_FILTER_FIELDS:
+            if k not in CMRESHandler.__LOGGING_FILTER_FIELDS:
                 rec[k] = "" if v is None else v
         rec['timestamp'] = self.__get_es_datetime_str(record.created)
 
         self._buffer.append(rec)
         if len(self._buffer) >= self.buffer_size:
             self.flush()
-

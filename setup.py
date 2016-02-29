@@ -22,10 +22,10 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.0.0.a1',
+    version='1.0.0.dev1',
 
     description='Elasticsearch Log handler for the logging library',
-    long_description="Elasticsearch log handler for the standard logging library",
+    long_description=long_description,
 
     # The project's main homepage.
     url='https://github.com/cmanaha/python-elasticsearch-logger',
@@ -62,7 +62,7 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=find_packages(exclude=['cmreshandler', 'tests']),
+    packages=find_packages(exclude=['dist', 'docs', 'build']),
 
     # Alternatively, if you want to distribute just a my_module.py, uncomment
     # this:

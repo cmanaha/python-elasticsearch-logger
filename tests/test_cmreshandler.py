@@ -1,13 +1,13 @@
 import unittest
-from cmreshandler import CMRESHandler
 import logging
 import time
 import os
 import sys
+sys.path.insert(0, os.path.abspath('.'))
+from cmreshandler.cmreshandler import CMRESHandler
 
-sys.path.insert(0, os.path.abspath('..'))
 
-class MyTestCase(unittest.TestCase):
+class CMRESHandlerTestCase(unittest.TestCase):
 
     def setUp(self):
         self.log = logging.getLogger("MyTestCase")
@@ -71,7 +71,7 @@ class MyTestCase(unittest.TestCase):
         time.sleep(1)
         self.assertEquals(0, len(handler._buffer))
 
-    def test_buffered_log_insertion_after_interval_expired(self):
+    def test_buffered_log_insertion_flushed_when_buffer_full(self):
         handler = CMRESHandler(hosts=[{'host': 'localhost', 'port': 9200}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
                                use_ssl=False,
@@ -96,15 +96,15 @@ class MyTestCase(unittest.TestCase):
         handler = CMRESHandler(hosts=[{'host': 'localhost', 'port': 9200}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
                                use_ssl=False,
-                               buffer_size=1000,
-                               flush_frequency_in_sec=1,
+                               buffer_size=200,
+                               flush_frequency_in_sec=0.1,
                                es_index_name="pythontest")
         log = logging.getLogger("PythonTest")
         log.setLevel(logging.DEBUG)
         log.addHandler(handler)
-        for i in xrange(5000):
+        for i in xrange(1000):
             log.info("Logging line %d" % i, extra={'LineNum': i})
-        time.sleep(2.3)
+        time.sleep(0.5)
         self.assertEquals(0, len(handler._buffer))
 
 
