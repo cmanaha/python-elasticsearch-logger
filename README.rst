@@ -3,7 +3,7 @@
 CMRESHandler.py
 ===============
 
-|  |license| |versions| |status|
+|  |license| |versions| |status| |ci_status|
 
 
 Python Elasticsearch Log handler
@@ -120,3 +120,6 @@ Feel free to use this as is or even better, feel free to fork and send your pull
 .. |license| image:: https://img.shields.io/pypi/l/CMRESHandler.svg
     :target: https://pypi.python.org/pypi/CMRESHandler
     :alt: License
+.. |ci_status| image:: https://travis-ci.org/cmanaha/python-elasticsearch-logger.svg?branch=master
+    :target: https://travis-ci.org/cmanaha/python-elasticsearch-logger
+    :alt: Continuous Integration Status
