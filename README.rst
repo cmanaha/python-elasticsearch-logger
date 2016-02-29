@@ -124,6 +124,6 @@ Feel free to use this as is or even better, feel free to fork and send your pull
 .. |ci_status| image:: https://travis-ci.org/cmanaha/python-elasticsearch-logger.svg?branch=master
     :target: https://travis-ci.org/cmanaha/python-elasticsearch-logger
     :alt: Continuous Integration Status
-.. |codecov| image:: http://codecov.io/github/cmanaha/python-elasticsearch-logger.svg?branch=master
+.. |codecov| image:: https://codecov.io/github/cmanaha/python-elasticsearch-logger/coverage.svg?branch=master
     :target: http://codecov.io/github/cmanaha/python-elasticsearch-logger?branch=master
     :alt: Coverage!
