@@ -128,8 +128,8 @@ class CMRESHandler(logging.Handler):
             return Elasticsearch(hosts=self.hosts,
                                  use_ssl=self.use_ssl,
                                  verify_certs=self.verify_certs,
-                                 connection_class=RequestsHttpConnection(
-                                     http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED)))
+                                 connection_class=RequestsHttpConnection,
+                                 http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED))
 
     def test_es_source(self):
         """ Returns True if the handler can ping the Elasticsearch servers
