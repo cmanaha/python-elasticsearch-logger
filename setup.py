@@ -22,7 +22,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.0.0a1',
+    version='1.0.0a2',
 
     description='Elasticsearch Log handler for the logging library',
     long_description=long_description,
@@ -48,6 +48,7 @@ setup(
         'Intended Audience :: Developers',
         'Topic :: System :: Logging',
         'Topic :: Software Development :: Libraries',
+        'Topic :: Internet :: Log Analysis',
 
         # Pick your license as you wish (should match "license" above)
         'License :: OSI Approved :: Apache Software License',
@@ -58,7 +59,7 @@ setup(
     ],
 
     # What does your project relate to?
-    keywords='logging elasticsearch handler',
+    keywords='logging elasticsearch handler log django instrumentation',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
