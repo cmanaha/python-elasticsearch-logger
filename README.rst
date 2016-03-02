@@ -92,6 +92,46 @@ The constructors takes the following parameters:
  - es_doc_type: A string with the name of the document type that will be used ``python_log`` used by default
  - es_additional_fields: A dictionary with all the additional fields that you would like to add to the logs
 
+Django Integration
+==================
+It is also very easy to integrate the handler to `Django <https://www.djangoproject.com/>`_ And what is even
+better, at DEBUG level django logs information such as how long it takes for DB connections to return so
+they can be plotted on Kibana, or the SQL statements that Django executed. ::
+
+    from cmreshandler.cmreshandler import CMRESHandler
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'file': {
+                'level': 'DEBUG',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': './debug.log',
+                'maxBytes': 102400,
+                'backupCount': 5,
+            },
+            'elasticsearch': {
+                'level': 'DEBUG',
+                'class': 'cmreshandler.cmreshandler.CMRESHandler',
+                'hosts': [{'host': 'localhost', 'port': 9200}],
+                'es_index_name': 'my_python_app',
+                'es_additional_fields': {'App': 'Test', 'Environment': 'Dev'},
+                'auth_type': CMRESHandler.AuthType.NO_AUTH,
+                'use_ssl': False,
+            },
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['file','elasticsearch'],
+                'level': 'DEBUG',
+                'propagate': True,
+            },
+        },
+    }
+
+There is more information about how Django logging works in the
+`Django documentation <https://docs.djangoproject.com/en/1.9/topics/logging//>`_
+
 
 Building the sources & Testing
 ------------------------------
