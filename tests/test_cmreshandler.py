@@ -34,7 +34,7 @@ class CMRESHandlerTestCase(unittest.TestCase):
                                es_additional_fields={'App': 'Test', 'Environment': 'Dev'})
 
         es_test_server_is_up = handler.test_es_source()
-        self.log.info("ES services status is:  %s" % es_test_server_is_up)
+        self.log.info("ES services status is:  {0!s}".format(es_test_server_is_up))
         self.assertEquals(True, es_test_server_is_up)
 
         log = logging.getLogger("PythonTest")
@@ -57,7 +57,7 @@ class CMRESHandlerTestCase(unittest.TestCase):
                                es_additional_fields={'App': 'Test', 'Environment': 'Dev'})
 
         es_test_server_is_up = handler.test_es_source()
-        self.log.info("ES services status is:  %s" % es_test_server_is_up)
+        self.log.info("ES services status is:  {0!s}".format(es_test_server_is_up))
         self.assertEquals(True, es_test_server_is_up)
 
         log = logging.getLogger("PythonTest")
@@ -81,7 +81,7 @@ class CMRESHandlerTestCase(unittest.TestCase):
                                es_additional_fields={'App': 'Test', 'Environment': 'Dev'})
 
         es_test_server_is_up = handler.test_es_source()
-        self.log.info("ES services status is:  %s" % es_test_server_is_up)
+        self.log.info("ES services status is:  {0!s}".format(es_test_server_is_up))
         self.assertEquals(True, es_test_server_is_up)
 
         log = logging.getLogger("PythonTest")
@@ -103,7 +103,7 @@ class CMRESHandlerTestCase(unittest.TestCase):
         log.setLevel(logging.DEBUG)
         log.addHandler(handler)
         for i in xrange(1000):
-            log.info("Logging line %d" % i, extra={'LineNum': i})
+            log.info("Logging line {0:d}".format(i), extra={'LineNum': i})
         time.sleep(0.5)
         self.assertEquals(0, len(handler._buffer))
 
