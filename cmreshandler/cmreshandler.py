@@ -145,7 +145,7 @@ class CMRESHandler(logging.Handler):
         """ Returns elasticearch index name
         :return: A srting containing the elasticsearch indexname used which should include the date.
         """
-        return "%s-%s" % (self.es_index_name, datetime.datetime.now().strftime('%Y.%m.%d'))
+        return "{0!s}-{1!s}".format(self.es_index_name, datetime.datetime.now().strftime('%Y.%m.%d'))
 
     @staticmethod
     def __get_es_datetime_str(timestamp):
@@ -155,7 +155,7 @@ class CMRESHandler(logging.Handler):
         :return: A string valid for elasticsearch time record
         """
         t = datetime.datetime.utcfromtimestamp(timestamp)
-        return "%s.%03.dZ" % (t.strftime('%Y-%m-%dT%H:%M:%S'), int(t.microsecond / 1000))
+        return "{0!s}.{1:03d}Z".format(t.strftime('%Y-%m-%dT%H:%M:%S'), int(t.microsecond / 1000))
 
     def flush(self):
         """ Flushes the buffer into ES
