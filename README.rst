@@ -11,9 +11,9 @@ Python Elasticsearch Log handler
 ********************************
 
 This library provides an Elasticsearch logging appender compatible with the
-pyton standard `logging <https://docs.python.org/2/library/logging.html>`_ library.
+python standard `logging <https://docs.python.org/2/library/logging.html>`_ library.
 
-The code source is in github at `https://github.com/cmanaha/python-elasticsearch-logger 
+The code source is in github at `https://github.com/cmanaha/python-elasticsearch-logger
 <https://github.com/cmanaha/python-elasticsearch-logger>`_
 
 
@@ -21,7 +21,7 @@ Installation
 ============
 Install using pip::
 
-    pip install CRMESHandler
+    pip install CMRESHandler
 
 Requirements
 ============
@@ -142,7 +142,7 @@ Why using an appender rather than logstash or beats
 ---------------------------------------------------
 In some cases is quite useful to provide all the information available within the LogRecords as it contains
 things such as exception information, the method, file, log line where the log was generated. All this can be
-also done from logstash configuration, but it still requires to provide quite a lot of context to 
+also done from logstash configuration, but it still requires to provide quite a lot of context to
 
 Contributing back
 -----------------
