@@ -89,7 +89,7 @@ class CMRESHandler(logging.Handler):
         logging.Handler.__init__(self)
 
         self.hosts = hosts
-        self.auth_details = auth_details,
+        self.auth_details = auth_details
         self.auth_type = auth_type
         self.use_ssl = use_ssl
         self.verify_certs = verify_ssl
