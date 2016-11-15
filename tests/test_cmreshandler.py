@@ -102,7 +102,7 @@ class CMRESHandlerTestCase(unittest.TestCase):
         log = logging.getLogger("PythonTest")
         log.setLevel(logging.DEBUG)
         log.addHandler(handler)
-        for i in xrange(1000):
+        for i in range(1000):
             log.info("Logging line {0:d}".format(i), extra={'LineNum': i})
         time.sleep(0.5)
         self.assertEquals(0, len(handler._buffer))
