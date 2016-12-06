@@ -43,6 +43,7 @@ class CMRESHandler(logging.Handler):
     __DEFAULT_ES_INDEX_NAME = 'python_logger'
     __DEFAULT_ES_DOC_TYPE = 'python_log'
     __DEFAULT_RAISE_ON_INDEXING_EXCEPTIONS = False
+    __DEFAULT_TIMESTAMP_FIELD_NAME = "timestamp"
 
     __LOGGING_FILTER_FIELDS = ['msecs',
                                'relativeCreated',
@@ -60,7 +61,8 @@ class CMRESHandler(logging.Handler):
                  es_index_name=__DEFAULT_ES_INDEX_NAME,
                  es_doc_type=__DEFAULT_ES_DOC_TYPE,
                  es_additional_fields=__DEFAULT_ADDITIONAL_FIELDS,
-                 raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_INDEXING_EXCEPTIONS):
+                 raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_INDEXING_EXCEPTIONS,
+                 default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME):
         """ Handler constructor
 
         :param hosts: The list of hosts that elasticsearch clients will connect. The list can be provided
@@ -101,6 +103,7 @@ class CMRESHandler(logging.Handler):
         self.es_additional_fields.update({'host': socket.gethostname(),
                                           'host_ip': socket.gethostbyname(socket.gethostname())})
         self.raise_on_indexing_exceptions = raise_on_indexing_exceptions
+        self.default_timestamp_field_name = default_timestamp_field_name
 
         self._buffer = []
         self._timer = None
@@ -203,7 +206,7 @@ class CMRESHandler(logging.Handler):
         for k, v in record.__dict__.items():
             if k not in CMRESHandler.__LOGGING_FILTER_FIELDS:
                 rec[k] = "" if v is None else v
-        rec['timestamp'] = self.__get_es_datetime_str(record.created)
+        rec[self.default_timestamp_field_name] = self.__get_es_datetime_str(record.created)
 
         self._buffer.append(rec)
         if len(self._buffer) >= self.buffer_size:
