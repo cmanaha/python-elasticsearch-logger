@@ -5,10 +5,13 @@ import logging
 from enum import Enum
 from elasticsearch import helpers as eshelpers
 from elasticsearch import Elasticsearch, RequestsHttpConnection
-from requests_kerberos import HTTPKerberosAuth, DISABLED
 import datetime
 import socket
 from threading import Timer
+try:
+    from requests_kerberos import HTTPKerberosAuth, DISABLED
+except ImportError:
+    pass
 
 
 class CMRESHandler(logging.Handler):
@@ -121,13 +124,15 @@ class CMRESHandler(logging.Handler):
                                  use_ssl=self.use_ssl,
                                  verify_certs=self.verify_certs,
                                  connection_class=RequestsHttpConnection)
-        elif self.auth_type == CMRESHandler.AuthType.BASIC_AUTH:
+
+        if self.auth_type == CMRESHandler.AuthType.BASIC_AUTH:
             return Elasticsearch(hosts=self.hosts,
                                  http_auth=self.auth_details,
                                  use_ssl=self.use_ssl,
                                  verify_certs=self.verify_certs,
                                  connection_class=RequestsHttpConnection)
-        elif self.auth_type == CMRESHandler.AuthType.KERBEROS_AUTH:
+
+        if self.auth_type == CMRESHandler.AuthType.KERBEROS_AUTH:
             return Elasticsearch(hosts=self.hosts,
                                  use_ssl=self.use_ssl,
                                  verify_certs=self.verify_certs,
@@ -168,16 +173,21 @@ class CMRESHandler(logging.Handler):
             self._timer.cancel()
         self._timer = None
 
-        # FIXME: This should probably go on a different thread to speed up the execution
         if len(self._buffer) >= 0:
             try:
-                actions = map(lambda x: {'_index': self.__get_es_index_name(),
-                                         '_type': self.es_doc_type,
-                                         '_source': x},
-                              self._buffer)
-                eshelpers.bulk(client=self.__get_es_client(),
-                               actions=actions,
-                               stats_only=True)
+                actions = map(
+                    lambda x: {
+                        '_index': self.__get_es_index_name(),
+                        '_type': self.es_doc_type,
+                        '_source': x},
+                    self._buffer
+                )
+
+                eshelpers.bulk(
+                    client=self.__get_es_client(),
+                    actions=actions,
+                    stats_only=True
+                )
             except Exception as e:
                 if self.raise_on_indexing_exceptions:
                     raise e
