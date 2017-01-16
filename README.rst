@@ -25,17 +25,25 @@ Install using pip::
 
 Requirements
 ============
+__python 2__
 This library requires the following dependencies
- - requests
- - requests-kerberos
  - elasticsearch
+ - requests
  - enum
+
+__python 3__
+This library requires the following dependencies
+ - elasticsearch
+ - requests
+
+Additionally, the package support optionally kerberos authentication by adding the following dependecy
+ - requests-kerberos
 
 Using the handler in  your program
 ==================================
 To initialise and create the handler, just add the handler to your logger as follow ::
 
-    import CMRESHandler
+    from cmrlogging.handlers import CMRESHandler
     handler = CMRESHandler(hosts=[{'host': 'localhost', 'port': 9200}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
                                es_index_name="my_python_index")
@@ -45,7 +53,7 @@ To initialise and create the handler, just add the handler to your logger as fol
 
 You can add fields upon initialisation, providing more data of the execution context ::
 
-    import CMRESHandler
+    from cmrlogging.handlers import CMRESHandler
     handler = CMRESHandler(hosts=[{'host': 'localhost', 'port': 9200}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
                                es_index_name="my_python_index",
@@ -112,7 +120,7 @@ they can be plotted on Kibana, or the SQL statements that Django executed. ::
             },
             'elasticsearch': {
                 'level': 'DEBUG',
-                'class': 'cmreshandler.cmreshandler.CMRESHandler',
+                'class': 'cmrlogging.handlers.CMRESHandler',
                 'hosts': [{'host': 'localhost', 'port': 9200}],
                 'es_index_name': 'my_python_app',
                 'es_additional_fields': {'App': 'Test', 'Environment': 'Dev'},
