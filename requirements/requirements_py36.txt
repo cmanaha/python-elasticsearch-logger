@@ -1,2 +1,2 @@
 elasticsearch==5.1.0
-enum==0.4.6
+requests==2.12.4

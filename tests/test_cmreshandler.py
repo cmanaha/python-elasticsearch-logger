@@ -103,7 +103,7 @@ class CMRESHandlerTestCase(unittest.TestCase):
         time.sleep(1)
         self.assertEquals(0, len(handler._buffer))
 
-    def test_fast_insertion_of_thousands_logs(self):
+    def test_fast_insertion_of_hundred_logs(self):
         handler = CMRESHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
                                use_ssl=False,
@@ -113,11 +113,10 @@ class CMRESHandlerTestCase(unittest.TestCase):
         log = logging.getLogger("PythonTest")
         log.setLevel(logging.DEBUG)
         log.addHandler(handler)
-        for i in range(1000):
+        for i in range(100):
             log.info("Logging line {0:d}".format(i), extra={'LineNum': i})
         handler.flush()
         self.assertEquals(0, len(handler._buffer))
-
 
 if __name__ == '__main__':
     unittest.main()

@@ -10,8 +10,9 @@ import socket
 from threading import Timer
 try:
     from requests_kerberos import HTTPKerberosAuth, DISABLED
+    CMR_KERBEROS_SUPPORTED = True
 except ImportError:
-    pass
+    CMR_KERBEROS_SUPPORTED = False
 
 
 class CMRESHandler(logging.Handler):
@@ -133,11 +134,16 @@ class CMRESHandler(logging.Handler):
                                  connection_class=RequestsHttpConnection)
 
         if self.auth_type == CMRESHandler.AuthType.KERBEROS_AUTH:
-            return Elasticsearch(hosts=self.hosts,
-                                 use_ssl=self.use_ssl,
-                                 verify_certs=self.verify_certs,
-                                 connection_class=RequestsHttpConnection,
-                                 http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED))
+            if CMR_KERBEROS_SUPPORTED:
+                return Elasticsearch(hosts=self.hosts,
+                                     use_ssl=self.use_ssl,
+                                     verify_certs=self.verify_certs,
+                                     connection_class=RequestsHttpConnection,
+                                     http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED))
+            else:
+                raise EnvironmentError("Kerberos module not available. Please install \"requests-kerberos\"")
+
+        raise ValueError("Authentication method not supported")
 
     def test_es_source(self):
         """ Returns True if the handler can ping the Elasticsearch servers
