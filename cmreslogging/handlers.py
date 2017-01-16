@@ -4,6 +4,7 @@
 import logging
 import datetime
 import socket
+import copy
 from threading import Timer
 from enum import Enum
 from elasticsearch import helpers as eshelpers
@@ -56,11 +57,11 @@ class CMRESHandler(logging.Handler):
     __DEFAULT_AUTH_TYPE = AuthType.NO_AUTH
     __DEFAULT_INDEX_FREQUENCY = IndexNameFrequency.DAILY
     __DEFAULT_BUFFER_SIZE = 1000
-    __DEFAULT_FLUSH_FREQUENCY_IN_SEC = 1
+    __DEFAULT_FLUSH_FREQ_INSEC = 1
     __DEFAULT_ADDITIONAL_FIELDS = {}
     __DEFAULT_ES_INDEX_NAME = 'python_logger'
     __DEFAULT_ES_DOC_TYPE = 'python_log'
-    __DEFAULT_RAISE_ON_INDEX_EXCEPTIONS = False
+    __DEFAULT_RAISE_ON_EXCEPTION = False
     __DEFAULT_TIMESTAMP_FIELD_NAME = "timestamp"
 
     __LOGGING_FILTER_FIELDS = ['msecs',
@@ -116,12 +117,12 @@ class CMRESHandler(logging.Handler):
                  use_ssl=__DEFAULT_USE_SSL,
                  verify_ssl=__DEFAULT_VERIFY_SSL,
                  buffer_size=__DEFAULT_BUFFER_SIZE,
-                 flush_frequency_in_sec=__DEFAULT_FLUSH_FREQUENCY_IN_SEC,
+                 flush_frequency_in_sec=__DEFAULT_FLUSH_FREQ_INSEC,
                  es_index_name=__DEFAULT_ES_INDEX_NAME,
                  index_name_frequency=__DEFAULT_INDEX_FREQUENCY,
                  es_doc_type=__DEFAULT_ES_DOC_TYPE,
                  es_additional_fields=__DEFAULT_ADDITIONAL_FIELDS,
-                 raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_INDEX_EXCEPTIONS,
+                 raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_EXCEPTION,
                  default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME):
         """ Handler constructor
 
@@ -154,7 +155,7 @@ class CMRESHandler(logging.Handler):
         """
         logging.Handler.__init__(self)
 
-        self.hosts = hosts
+        self.hosts = copy.deepcopy(hosts)
         self.auth_details = auth_details
         self.auth_type = auth_type
         self.use_ssl = use_ssl
@@ -164,7 +165,7 @@ class CMRESHandler(logging.Handler):
         self.es_index_name = es_index_name
         self.index_name_frequency = index_name_frequency
         self.es_doc_type = es_doc_type
-        self.es_additional_fields = es_additional_fields.copy()
+        self.es_additional_fields = copy.deepcopy(es_additional_fields)
         self.es_additional_fields.update({'host': socket.gethostname(),
                                           'host_ip': socket.gethostbyname(socket.gethostname())})
         self.raise_on_indexing_exceptions = raise_on_indexing_exceptions
