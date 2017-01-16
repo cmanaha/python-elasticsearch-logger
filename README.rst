@@ -25,13 +25,13 @@ Install using pip::
 
 Requirements
 ============
-__python 2__
+ * python 2
 This library requires the following dependencies
  - elasticsearch
  - requests
  - enum
 
-__python 3__
+ * python 3
 This library requires the following dependencies
  - elasticsearch
  - requests
