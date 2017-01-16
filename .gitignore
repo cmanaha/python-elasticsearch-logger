@@ -25,6 +25,12 @@ var/
 .installed.cfg
 *.egg
 
+pylint.txt
+coverage.xml
+pylint_*
+.pylint.d/
+.sonar/
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
