@@ -23,20 +23,22 @@ Install using pip::
 
     pip install CMRESHandler
 
-Requirements
-============
- * python 2
+Requirements Python 2
+=====================
 This library requires the following dependencies
  - elasticsearch
  - requests
  - enum
 
 
- * python 3
+Requirements Python 3
+=====================
 This library requires the following dependencies
  - elasticsearch
  - requests
 
+Additional requirements for Kerberos support
+============================================
 Additionally, the package support optionally kerberos authentication by adding the following dependecy
  - requests-kerberos
 
