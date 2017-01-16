@@ -113,7 +113,7 @@ It is also very easy to integrate the handler to `Django <https://www.djangoproj
 better, at DEBUG level django logs information such as how long it takes for DB connections to return so
 they can be plotted on Kibana, or the SQL statements that Django executed. ::
 
-    from cmreshandler.cmreshandler import CMRESHandler
+    from cmreslogging.handlers import CMRESHandler
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,

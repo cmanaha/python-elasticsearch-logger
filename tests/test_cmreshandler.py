@@ -131,7 +131,7 @@ class CMRESHandlerTestCase(unittest.TestCase):
                                use_ssl=False,
                                index_name_frequency=CMRESHandler.IndexNameFrequency.DAILY,
                                raise_on_indexing_exceptions=True)
-        self.assertEquals(
+        self.assertEqual(
             handler._index_name_func.__func__(index_name),
             CMRESHandler._get_daily_index_name(index_name)
         )
@@ -142,7 +142,7 @@ class CMRESHandlerTestCase(unittest.TestCase):
                                use_ssl=False,
                                index_name_frequency=CMRESHandler.IndexNameFrequency.WEEKLY,
                                raise_on_indexing_exceptions=True)
-        self.assertEquals(
+        self.assertEqual(
             handler._index_name_func.__func__(index_name),
             CMRESHandler._get_weekly_index_name(index_name)
         )
@@ -153,7 +153,7 @@ class CMRESHandlerTestCase(unittest.TestCase):
                                use_ssl=False,
                                index_name_frequency=CMRESHandler.IndexNameFrequency.MONTHLY,
                                raise_on_indexing_exceptions=True)
-        self.assertEquals(
+        self.assertEqual(
             handler._index_name_func.__func__(index_name),
             CMRESHandler._get_monthly_index_name(index_name)
         )
@@ -164,7 +164,7 @@ class CMRESHandlerTestCase(unittest.TestCase):
                                use_ssl=False,
                                index_name_frequency=CMRESHandler.IndexNameFrequency.YEARLY,
                                raise_on_indexing_exceptions=True)
-        self.assertEquals(
+        self.assertEqual(
             handler._index_name_func.__func__(index_name),
             CMRESHandler._get_yearly_index_name(index_name)
         )
