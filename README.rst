@@ -23,19 +23,30 @@ Install using pip::
 
     pip install CMRESHandler
 
-Requirements
-============
+Requirements Python 2
+=====================
 This library requires the following dependencies
- - requests
- - requests-kerberos
  - elasticsearch
+ - requests
  - enum
+
+
+Requirements Python 3
+=====================
+This library requires the following dependencies
+ - elasticsearch
+ - requests
+
+Additional requirements for Kerberos support
+============================================
+Additionally, the package support optionally kerberos authentication by adding the following dependecy
+ - requests-kerberos
 
 Using the handler in  your program
 ==================================
 To initialise and create the handler, just add the handler to your logger as follow ::
 
-    import CMRESHandler
+    from cmrlogging.handlers import CMRESHandler
     handler = CMRESHandler(hosts=[{'host': 'localhost', 'port': 9200}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
                                es_index_name="my_python_index")
@@ -45,7 +56,7 @@ To initialise and create the handler, just add the handler to your logger as fol
 
 You can add fields upon initialisation, providing more data of the execution context ::
 
-    import CMRESHandler
+    from cmrlogging.handlers import CMRESHandler
     handler = CMRESHandler(hosts=[{'host': 'localhost', 'port': 9200}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
                                es_index_name="my_python_index",
@@ -89,6 +100,10 @@ The constructors takes the following parameters:
  - flush_frequency_in_sec: A float representing how often and when the buffer will be flushed
  - es_index_name: A string with the prefix of the elasticsearch index that will be created. Note a date with
    YYYY.MM.dd, ``python_logger`` used by default
+ - index_name_frequency: The frequency to use as part of the index naming. Currently supports
+   CMRESHandler.IndexNameFrequency.DAILY, CMRESHandler.IndexNameFrequency.WEEKLY,
+   CMRESHandler.IndexNameFrequency.MONTHLY, CMRESHandler.IndexNameFrequency.YEARLY by default the daily rotation
+   is used
  - es_doc_type: A string with the name of the document type that will be used ``python_log`` used by default
  - es_additional_fields: A dictionary with all the additional fields that you would like to add to the logs
 
@@ -98,7 +113,7 @@ It is also very easy to integrate the handler to `Django <https://www.djangoproj
 better, at DEBUG level django logs information such as how long it takes for DB connections to return so
 they can be plotted on Kibana, or the SQL statements that Django executed. ::
 
-    from cmreshandler.cmreshandler import CMRESHandler
+    from cmreslogging.handlers import CMRESHandler
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
@@ -112,7 +127,7 @@ they can be plotted on Kibana, or the SQL statements that Django executed. ::
             },
             'elasticsearch': {
                 'level': 'DEBUG',
-                'class': 'cmreshandler.cmreshandler.CMRESHandler',
+                'class': 'cmrlogging.handlers.CMRESHandler',
                 'hosts': [{'host': 'localhost', 'port': 9200}],
                 'es_index_name': 'my_python_app',
                 'es_additional_fields': {'App': 'Test', 'Environment': 'Dev'},
