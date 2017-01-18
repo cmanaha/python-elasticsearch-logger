@@ -4,7 +4,6 @@
 import logging
 import datetime
 import socket
-import copy
 from threading import Timer
 from enum import Enum
 from elasticsearch import helpers as eshelpers
@@ -155,7 +154,7 @@ class CMRESHandler(logging.Handler):
         """
         logging.Handler.__init__(self)
 
-        self.hosts = copy.deepcopy(hosts)
+        self.hosts = hosts
         self.auth_details = auth_details
         self.auth_type = auth_type
         self.use_ssl = use_ssl
@@ -165,7 +164,7 @@ class CMRESHandler(logging.Handler):
         self.es_index_name = es_index_name
         self.index_name_frequency = index_name_frequency
         self.es_doc_type = es_doc_type
-        self.es_additional_fields = copy.deepcopy(es_additional_fields)
+        self.es_additional_fields = es_additional_fields.copy()
         self.es_additional_fields.update({'host': socket.gethostname(),
                                           'host_ip': socket.gethostbyname(socket.gethostname())})
         self.raise_on_indexing_exceptions = raise_on_indexing_exceptions
