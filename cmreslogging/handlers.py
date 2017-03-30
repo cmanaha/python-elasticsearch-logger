@@ -33,6 +33,7 @@ class CMRESHandler(logging.Handler):
         NO_AUTH = 0
         BASIC_AUTH = 1
         KERBEROS_AUTH = 2
+        AWS_SIGNED_AUTH = 3
 
     class IndexNameFrequency(Enum):
         """ Index type supported
@@ -51,6 +52,9 @@ class CMRESHandler(logging.Handler):
     __DEFAULT_ELASTICSEARCH_HOST = [{'host': 'localhost', 'port': 9200}]
     __DEFAULT_AUTH_USER = ''
     __DEFAULT_AUTH_PASSWD = ''
+    __DEFAULT_AWS_ACCESS_KEY = ''
+    __DEFAULT_AWS_SECRET_KEY = ''
+    __DEFAULT_AWS_REGION = ''
     __DEFAULT_USE_SSL = False
     __DEFAULT_VERIFY_SSL = True
     __DEFAULT_AUTH_TYPE = AuthType.NO_AUTH
@@ -112,6 +116,9 @@ class CMRESHandler(logging.Handler):
     def __init__(self,
                  hosts=__DEFAULT_ELASTICSEARCH_HOST,
                  auth_details=(__DEFAULT_AUTH_USER, __DEFAULT_AUTH_PASSWD),
+                 aws_access_key=__DEFAULT_AWS_ACCESS_KEY,
+                 aws_secret_key=__DEFAULT_AWS_SECRET_KEY,
+                 aws_region=__DEFAULT_AWS_REGION,
                  auth_type=__DEFAULT_AUTH_TYPE,
                  use_ssl=__DEFAULT_USE_SSL,
                  verify_ssl=__DEFAULT_VERIFY_SSL,
@@ -131,6 +138,12 @@ class CMRESHandler(logging.Handler):
         :param auth_details: When ```CMRESHandler.AuthType.BASIC_AUTH``` is used this argument must contain
                     a tuple of string with the user and password that will be used to authenticate against
                     the Elasticsearch servers, for example```('User','Password')
+        :param aws_access_key: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
+                    the AWS key id of the  the AWS IAM user, for example```'12345
+        :param aws_secret_key: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
+                    the AWS secret key of the  the AWS IAM user, for example```'5678'
+        :param aws_region: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
+                    the AWS region of the  the AWS Elasticsearch servers, for example```'us-east'
         :param auth_type: The authentication type to be used in the connection ```CMRESHandler.AuthType```
                     Currently, NO_AUTH, BASIC_AUTH, KERBEROS_AUTH are supported
         :param use_ssl: A boolean that defines if the communications should use SSL encrypted communication
@@ -156,6 +169,9 @@ class CMRESHandler(logging.Handler):
 
         self.hosts = hosts
         self.auth_details = auth_details
+        self.aws_access_key = aws_access_key
+        self.aws_secret_key = aws_secret_key
+        self.aws_region = aws_region
         self.auth_type = auth_type
         self.use_ssl = use_ssl
         self.verify_certs = verify_ssl
@@ -212,6 +228,19 @@ class CMRESHandler(logging.Handler):
             else:
                 raise EnvironmentError("Kerberos module not available. Please install \"requests-kerberos\"")
 
+        if self.auth_type == CMRESHandler.AuthType.AWS_SIGNED_AUTH:
+            from requests_aws4auth import AWS4Auth
+            awsauth = AWS4Auth(self.aws_access_key, self.aws_secret_key, self.aws_region, 'es')
+            es = Elasticsearch(
+                hosts=self.hosts,
+                http_auth=awsauth,
+                use_ssl=self.use_ssl,
+                verify_certs=True,
+                connection_class=RequestsHttpConnection
+            )
+            return es
+
+
         raise ValueError("Authentication method not supported")
 
     def test_es_source(self):
@@ -252,7 +281,6 @@ class CMRESHandler(logging.Handler):
                     }
                     for log_record in self._buffer
                 )
-
                 eshelpers.bulk(
                     client=self.__get_es_client(),
                     actions=actions,

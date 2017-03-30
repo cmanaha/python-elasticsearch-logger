@@ -42,6 +42,11 @@ Additional requirements for Kerberos support
 Additionally, the package support optionally kerberos authentication by adding the following dependecy
  - requests-kerberos
 
+ Additional requirements for AWS IAM user authentication (request signing)
+============================================
+Additionally, the package support optionally AWS IAM user authentication by adding the following dependecy
+ - requests-aws4auth
+
 Using the handler in  your program
 ==================================
 To initialise and create the handler, just add the handler to your logger as follow ::
@@ -94,6 +99,9 @@ The constructors takes the following parameters:
 
  - auth_type: The authentication currently support CMRESHandler.AuthType = NO_AUTH, BASIC_AUTH, KERBEROS_AUTH
  - auth_details: When CMRESHandler.AuthType.BASIC_AUTH is used this argument must contain a tuple of string with the user and password that will be used to authenticate against the Elasticsearch servers, for example ('User','Password')
+ - aws_access_key: When ``CMRESHandler.AuthType.AWS_SIGNED_AUTH`` is used this argument must contain the AWS key id of the  the AWS IAM user
+ - aws_secret_key: When ``CMRESHandler.AuthType.AWS_SIGNED_AUTH`` is used this argument must contain the AWS secret key of the  the AWS IAM user
+ - aws_region: When ``CMRESHandler.AuthType.AWS_SIGNED_AUTH`` is used this argument must contain the AWS region of the  the AWS Elasticsearch servers, for example ``'us-east'``
  - use_ssl: A boolean that defines if the communications should use SSL encrypted communication
  - verify_ssl: A boolean that defines if the SSL certificates are validated or not
  - buffer_size: An int, Once this size is reached on the internal buffer results are flushed into ES
