@@ -242,7 +242,7 @@ class CMRESHandler(logging.Handler):
             self._timer.cancel()
         self._timer = None
 
-        if len(self._buffer) >= 0:
+        if len(self._buffer) > 0:
             try:
                 actions = (
                     {
