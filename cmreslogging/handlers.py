@@ -139,9 +139,9 @@ class CMRESHandler(logging.Handler):
                     a tuple of string with the user and password that will be used to authenticate against
                     the Elasticsearch servers, for example```('User','Password')
         :param aws_access_key: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
-                    the AWS key id of the  the AWS IAM user, for example```'12345
+                    the AWS key id of the  the AWS IAM user
         :param aws_secret_key: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
-                    the AWS secret key of the  the AWS IAM user, for example```'5678'
+                    the AWS secret key of the  the AWS IAM user
         :param aws_region: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
                     the AWS region of the  the AWS Elasticsearch servers, for example```'us-east'
         :param auth_type: The authentication type to be used in the connection ```CMRESHandler.AuthType```
@@ -231,15 +231,13 @@ class CMRESHandler(logging.Handler):
         if self.auth_type == CMRESHandler.AuthType.AWS_SIGNED_AUTH:
             from requests_aws4auth import AWS4Auth
             awsauth = AWS4Auth(self.aws_access_key, self.aws_secret_key, self.aws_region, 'es')
-            es = Elasticsearch(
+            return Elasticsearch(
                 hosts=self.hosts,
                 http_auth=awsauth,
                 use_ssl=self.use_ssl,
                 verify_certs=True,
                 connection_class=RequestsHttpConnection
             )
-            return es
-
 
         raise ValueError("Authentication method not supported")
 

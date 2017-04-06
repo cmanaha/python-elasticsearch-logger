@@ -42,8 +42,8 @@ Additional requirements for Kerberos support
 Additionally, the package support optionally kerberos authentication by adding the following dependecy
  - requests-kerberos
 
- Additional requirements for AWS IAM user authentication (request signing)
-============================================
+Additional requirements for AWS IAM user authentication (request signing)
+=========================================================================
 Additionally, the package support optionally AWS IAM user authentication by adding the following dependecy
  - requests-aws4auth
 
