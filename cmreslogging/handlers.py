@@ -196,7 +196,6 @@ class CMRESHandler(logging.Handler):
         self._client = None
         self._buffer = []
         self._timer = None
-        self.__schedule_flush()
 
         self._index_name_func = CMRESHandler._INDEX_FREQUENCY_FUNCION_DICT[self.index_name_frequency]
 
@@ -278,7 +277,7 @@ class CMRESHandler(logging.Handler):
             self._timer.cancel()
         self._timer = None
 
-        if len(self._buffer) >= 0:
+        if self._buffer:
             try:
                 actions = (
                     {
@@ -298,15 +297,13 @@ class CMRESHandler(logging.Handler):
                     raise exception
             self._buffer = []
 
-        self.__schedule_flush()
-
     def close(self):
         """ Flushes the buffer and release any outstanding resource
 
         :return: None
         """
-        self.flush()
-        self._timer.cancel()
+        if self._timer is not None:
+            self.flush()
         self._timer = None
 
     def emit(self, record):
@@ -322,7 +319,9 @@ class CMRESHandler(logging.Handler):
             if key not in CMRESHandler.__LOGGING_FILTER_FIELDS:
                 rec[key] = "" if value is None else value
         rec[self.default_timestamp_field_name] = self.__get_es_datetime_str(record.created)
-
         self._buffer.append(rec)
+
         if len(self._buffer) >= self.buffer_size:
             self.flush()
+        else:
+            self.__schedule_flush()
