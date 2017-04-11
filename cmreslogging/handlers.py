@@ -8,11 +8,18 @@ from threading import Timer
 from enum import Enum
 from elasticsearch import helpers as eshelpers
 from elasticsearch import Elasticsearch, RequestsHttpConnection
+
 try:
     from requests_kerberos import HTTPKerberosAuth, DISABLED
     CMR_KERBEROS_SUPPORTED = True
 except ImportError:
     CMR_KERBEROS_SUPPORTED = False
+
+try:
+    from requests_aws4auth import AWS4Auth
+    AWS4AUTH_SUPPORTED = True
+except ImportError:
+    AWS4AUTH_SUPPORTED = False
 
 
 class CMRESHandler(logging.Handler):
@@ -218,26 +225,28 @@ class CMRESHandler(logging.Handler):
             return self._client
 
         if self.auth_type == CMRESHandler.AuthType.KERBEROS_AUTH:
-            if CMR_KERBEROS_SUPPORTED:
-                # For kerberos we return a new client each time to make sure the tokens are up to date
-                return Elasticsearch(hosts=self.hosts,
-                                     use_ssl=self.use_ssl,
-                                     verify_certs=self.verify_certs,
-                                     connection_class=RequestsHttpConnection,
-                                     http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED))
-            else:
+            if not CMR_KERBEROS_SUPPORTED:
                 raise EnvironmentError("Kerberos module not available. Please install \"requests-kerberos\"")
+            # For kerberos we return a new client each time to make sure the tokens are up to date
+            return Elasticsearch(hosts=self.hosts,
+                                 use_ssl=self.use_ssl,
+                                 verify_certs=self.verify_certs,
+                                 connection_class=RequestsHttpConnection,
+                                 http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED))
 
         if self.auth_type == CMRESHandler.AuthType.AWS_SIGNED_AUTH:
-            from requests_aws4auth import AWS4Auth
-            awsauth = AWS4Auth(self.aws_access_key, self.aws_secret_key, self.aws_region, 'es')
-            return Elasticsearch(
-                hosts=self.hosts,
-                http_auth=awsauth,
-                use_ssl=self.use_ssl,
-                verify_certs=True,
-                connection_class=RequestsHttpConnection
-            )
+            if not AWS4AUTH_SUPPORTED:
+                raise EnvironmentError("AWS4Auth not available. Please install \"requests-aws4auth\"")
+            if self._client is None:
+                awsauth = AWS4Auth(self.aws_access_key, self.aws_secret_key, self.aws_region, 'es')
+                self._client = Elasticsearch(
+                    hosts=self.hosts,
+                    http_auth=awsauth,
+                    use_ssl=self.use_ssl,
+                    verify_certs=True,
+                    connection_class=RequestsHttpConnection
+                )
+            return self._client
 
         raise ValueError("Authentication method not supported")
 
