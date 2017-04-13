@@ -8,11 +8,18 @@ from threading import Timer
 from enum import Enum
 from elasticsearch import helpers as eshelpers
 from elasticsearch import Elasticsearch, RequestsHttpConnection
+
 try:
     from requests_kerberos import HTTPKerberosAuth, DISABLED
     CMR_KERBEROS_SUPPORTED = True
 except ImportError:
     CMR_KERBEROS_SUPPORTED = False
+
+try:
+    from requests_aws4auth import AWS4Auth
+    AWS4AUTH_SUPPORTED = True
+except ImportError:
+    AWS4AUTH_SUPPORTED = False
 
 
 class CMRESHandler(logging.Handler):
@@ -33,6 +40,7 @@ class CMRESHandler(logging.Handler):
         NO_AUTH = 0
         BASIC_AUTH = 1
         KERBEROS_AUTH = 2
+        AWS_SIGNED_AUTH = 3
 
     class IndexNameFrequency(Enum):
         """ Index type supported
@@ -51,6 +59,9 @@ class CMRESHandler(logging.Handler):
     __DEFAULT_ELASTICSEARCH_HOST = [{'host': 'localhost', 'port': 9200}]
     __DEFAULT_AUTH_USER = ''
     __DEFAULT_AUTH_PASSWD = ''
+    __DEFAULT_AWS_ACCESS_KEY = ''
+    __DEFAULT_AWS_SECRET_KEY = ''
+    __DEFAULT_AWS_REGION = ''
     __DEFAULT_USE_SSL = False
     __DEFAULT_VERIFY_SSL = True
     __DEFAULT_AUTH_TYPE = AuthType.NO_AUTH
@@ -112,6 +123,9 @@ class CMRESHandler(logging.Handler):
     def __init__(self,
                  hosts=__DEFAULT_ELASTICSEARCH_HOST,
                  auth_details=(__DEFAULT_AUTH_USER, __DEFAULT_AUTH_PASSWD),
+                 aws_access_key=__DEFAULT_AWS_ACCESS_KEY,
+                 aws_secret_key=__DEFAULT_AWS_SECRET_KEY,
+                 aws_region=__DEFAULT_AWS_REGION,
                  auth_type=__DEFAULT_AUTH_TYPE,
                  use_ssl=__DEFAULT_USE_SSL,
                  verify_ssl=__DEFAULT_VERIFY_SSL,
@@ -131,6 +145,12 @@ class CMRESHandler(logging.Handler):
         :param auth_details: When ```CMRESHandler.AuthType.BASIC_AUTH``` is used this argument must contain
                     a tuple of string with the user and password that will be used to authenticate against
                     the Elasticsearch servers, for example```('User','Password')
+        :param aws_access_key: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
+                    the AWS key id of the  the AWS IAM user
+        :param aws_secret_key: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
+                    the AWS secret key of the  the AWS IAM user
+        :param aws_region: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
+                    the AWS region of the  the AWS Elasticsearch servers, for example```'us-east'
         :param auth_type: The authentication type to be used in the connection ```CMRESHandler.AuthType```
                     Currently, NO_AUTH, BASIC_AUTH, KERBEROS_AUTH are supported
         :param use_ssl: A boolean that defines if the communications should use SSL encrypted communication
@@ -156,6 +176,9 @@ class CMRESHandler(logging.Handler):
 
         self.hosts = hosts
         self.auth_details = auth_details
+        self.aws_access_key = aws_access_key
+        self.aws_secret_key = aws_secret_key
+        self.aws_region = aws_region
         self.auth_type = auth_type
         self.use_ssl = use_ssl
         self.verify_certs = verify_ssl
@@ -202,15 +225,28 @@ class CMRESHandler(logging.Handler):
             return self._client
 
         if self.auth_type == CMRESHandler.AuthType.KERBEROS_AUTH:
-            if CMR_KERBEROS_SUPPORTED:
-                # For kerberos we return a new client each time to make sure the tokens are up to date
-                return Elasticsearch(hosts=self.hosts,
-                                     use_ssl=self.use_ssl,
-                                     verify_certs=self.verify_certs,
-                                     connection_class=RequestsHttpConnection,
-                                     http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED))
-            else:
+            if not CMR_KERBEROS_SUPPORTED:
                 raise EnvironmentError("Kerberos module not available. Please install \"requests-kerberos\"")
+            # For kerberos we return a new client each time to make sure the tokens are up to date
+            return Elasticsearch(hosts=self.hosts,
+                                 use_ssl=self.use_ssl,
+                                 verify_certs=self.verify_certs,
+                                 connection_class=RequestsHttpConnection,
+                                 http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED))
+
+        if self.auth_type == CMRESHandler.AuthType.AWS_SIGNED_AUTH:
+            if not AWS4AUTH_SUPPORTED:
+                raise EnvironmentError("AWS4Auth not available. Please install \"requests-aws4auth\"")
+            if self._client is None:
+                awsauth = AWS4Auth(self.aws_access_key, self.aws_secret_key, self.aws_region, 'es')
+                self._client = Elasticsearch(
+                    hosts=self.hosts,
+                    http_auth=awsauth,
+                    use_ssl=self.use_ssl,
+                    verify_certs=True,
+                    connection_class=RequestsHttpConnection
+                )
+            return self._client
 
         raise ValueError("Authentication method not supported")
 
@@ -252,7 +288,6 @@ class CMRESHandler(logging.Handler):
                     }
                     for log_record in self._buffer
                 )
-
                 eshelpers.bulk(
                     client=self.__get_es_client(),
                     actions=actions,
