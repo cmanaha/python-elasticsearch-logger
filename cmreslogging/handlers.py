@@ -4,7 +4,7 @@
 import logging
 import datetime
 import socket
-from threading import Timer
+from threading import Timer, Lock
 from enum import Enum
 from elasticsearch import helpers as eshelpers
 from elasticsearch import Elasticsearch, RequestsHttpConnection
@@ -195,6 +195,7 @@ class CMRESHandler(logging.Handler):
 
         self._client = None
         self._buffer = []
+        self._buffer_lock = Lock()
         self._timer = None
 
         self._index_name_func = CMRESHandler._INDEX_FREQUENCY_FUNCION_DICT[self.index_name_frequency]
@@ -279,13 +280,16 @@ class CMRESHandler(logging.Handler):
 
         if self._buffer:
             try:
+                with self._buffer_lock:
+                    logs_buffer = self._buffer
+                    self._buffer = []
                 actions = (
                     {
                         '_index': self._index_name_func.__func__(self.es_index_name),
                         '_type': self.es_doc_type,
                         '_source': log_record
                     }
-                    for log_record in self._buffer
+                    for log_record in logs_buffer
                 )
                 eshelpers.bulk(
                     client=self.__get_es_client(),
@@ -295,7 +299,6 @@ class CMRESHandler(logging.Handler):
             except Exception as exception:
                 if self.raise_on_indexing_exceptions:
                     raise exception
-            self._buffer = []
 
     def close(self):
         """ Flushes the buffer and release any outstanding resource
@@ -319,7 +322,8 @@ class CMRESHandler(logging.Handler):
             if key not in CMRESHandler.__LOGGING_FILTER_FIELDS:
                 rec[key] = "" if value is None else value
         rec[self.default_timestamp_field_name] = self.__get_es_datetime_str(record.created)
-        self._buffer.append(rec)
+        with self._buffer_lock:
+            self._buffer.append(rec)
 
         if len(self._buffer) >= self.buffer_size:
             self.flush()
