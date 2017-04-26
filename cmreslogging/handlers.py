@@ -8,7 +8,6 @@ from threading import Timer
 from enum import Enum
 from elasticsearch import helpers as eshelpers
 from elasticsearch import Elasticsearch, RequestsHttpConnection
-from functools import partial
 
 try:
     from requests_kerberos import HTTPKerberosAuth, DISABLED
