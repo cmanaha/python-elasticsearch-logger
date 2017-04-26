@@ -8,6 +8,7 @@ from threading import Timer
 from enum import Enum
 from elasticsearch import helpers as eshelpers
 from elasticsearch import Elasticsearch, RequestsHttpConnection
+from functools import partial
 
 try:
     from requests_kerberos import HTTPKerberosAuth, DISABLED
@@ -269,6 +270,18 @@ class CMRESHandler(logging.Handler):
         current_date = datetime.datetime.utcfromtimestamp(timestamp)
         return "{0!s}.{1:03d}Z".format(current_date.strftime('%Y-%m-%dT%H:%M:%S'), int(current_date.microsecond / 1000))
 
+    def __validate_log_record(self, log_record):
+        """ Validates that the log_record can be serialized by the client """
+        client = self.__get_es_client()
+        try:
+            client.transport.serializer.dumps(log_record)
+            return True
+        except Exception, exception:
+            if self.raise_on_indexing_exceptions:
+                raise exception
+            else:
+                return False
+        
     def flush(self):
         """ Flushes the buffer into ES
         :return: None
@@ -285,7 +298,7 @@ class CMRESHandler(logging.Handler):
                         '_type': self.es_doc_type,
                         '_source': log_record
                     }
-                    for log_record in self._buffer
+                    for log_record in filter(self.__validate_log_record, self._buffer)
                 )
                 eshelpers.bulk(
                     client=self.__get_es_client(),
