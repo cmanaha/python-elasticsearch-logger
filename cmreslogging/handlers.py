@@ -21,6 +21,8 @@ try:
 except ImportError:
     AWS4AUTH_SUPPORTED = False
 
+from formatters import CMRESFormatter
+
 
 class CMRESHandler(logging.Handler):
     """ Elasticsearch log handler
@@ -196,6 +198,7 @@ class CMRESHandler(logging.Handler):
         self._client = None
         self._buffer = []
         self._timer = None
+        self.formatter = CMRESFormatter()
 
         self._index_name_func = CMRESHandler._INDEX_FREQUENCY_FUNCION_DICT[self.index_name_frequency]
 
@@ -314,6 +317,8 @@ class CMRESHandler(logging.Handler):
         :param record: A class of type ```logging.LogRecord```
         :return: None
         """
+        self.format(record)
+
         rec = self.es_additional_fields.copy()
         for key, value in record.__dict__.items():
             if key not in CMRESHandler.__LOGGING_FILTER_FIELDS:
