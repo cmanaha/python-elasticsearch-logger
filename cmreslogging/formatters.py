@@ -1,5 +1,6 @@
 """ Elasticsearch logging formatter
 """
+
 import logging
 
 
@@ -14,6 +15,8 @@ class CMRESFormatter(logging.Formatter):
         """ Format the exc_info to prevent an elasticsearch problem. 
 
         Use the inherited formatter to format asctime and exc_text.
+        :param record: A class of type ```logging.LogRecord```
+        :return: None
         """
         super(CMRESFormatter, self).format(record)
         record.exc_info = str(record.exc_info)
