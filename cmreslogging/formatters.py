@@ -14,9 +14,12 @@ class CMRESFormatter(logging.Formatter):
     def format(self, record):
         """ Format the exc_info to prevent an elasticsearch problem. 
 
-        Use the inherited formatter to format asctime and exc_text.
+        Use the inherited 'formatException' formatter method 
+        to format exc_text containing the stacktrace.
+        
         :param record: A class of type ```logging.LogRecord```
         :return: None
         """
-        super(CMRESFormatter, self).format(record)
+        if record.exc_info and not record.exc_text:
+            record.exc_text = self.formatException(record.exc_info)
         record.exc_info = str(record.exc_info)
