@@ -21,6 +21,8 @@ try:
 except ImportError:
     AWS4AUTH_SUPPORTED = False
 
+from serializers import CMRESSerializer
+
 
 class CMRESHandler(logging.Handler):
     """ Elasticsearch log handler
@@ -196,8 +198,8 @@ class CMRESHandler(logging.Handler):
         self._client = None
         self._buffer = []
         self._timer = None
-
         self._index_name_func = CMRESHandler._INDEX_FREQUENCY_FUNCION_DICT[self.index_name_frequency]
+        self.serializer = CMRESSerializer()
 
     def __schedule_flush(self):
         if self._timer is None:
@@ -211,7 +213,8 @@ class CMRESHandler(logging.Handler):
                 self._client = Elasticsearch(hosts=self.hosts,
                                              use_ssl=self.use_ssl,
                                              verify_certs=self.verify_certs,
-                                             connection_class=RequestsHttpConnection)
+                                             connection_class=RequestsHttpConnection,
+                                             serializer=self.serializer)
             return self._client
 
         if self.auth_type == CMRESHandler.AuthType.BASIC_AUTH:
@@ -220,7 +223,8 @@ class CMRESHandler(logging.Handler):
                                      http_auth=self.auth_details,
                                      use_ssl=self.use_ssl,
                                      verify_certs=self.verify_certs,
-                                     connection_class=RequestsHttpConnection)
+                                     connection_class=RequestsHttpConnection,
+                                     serializer=self.serializer)
             return self._client
 
         if self.auth_type == CMRESHandler.AuthType.KERBEROS_AUTH:
@@ -231,7 +235,8 @@ class CMRESHandler(logging.Handler):
                                  use_ssl=self.use_ssl,
                                  verify_certs=self.verify_certs,
                                  connection_class=RequestsHttpConnection,
-                                 http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED))
+                                 http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED),
+                                 serializer=self.serializer)
 
         if self.auth_type == CMRESHandler.AuthType.AWS_SIGNED_AUTH:
             if not AWS4AUTH_SUPPORTED:
@@ -243,7 +248,8 @@ class CMRESHandler(logging.Handler):
                     http_auth=awsauth,
                     use_ssl=self.use_ssl,
                     verify_certs=True,
-                    connection_class=RequestsHttpConnection
+                    connection_class=RequestsHttpConnection,
+                    serializer=self.serializer
                 )
             return self._client
 
@@ -309,11 +315,13 @@ class CMRESHandler(logging.Handler):
     def emit(self, record):
         """ Emit overrides the abstract logging.Handler logRecord emit method
 
-        records the log
+        Format and records the log
 
         :param record: A class of type ```logging.LogRecord```
         :return: None
         """
+        self.format(record)
+
         rec = self.es_additional_fields.copy()
         for key, value in record.__dict__.items():
             if key not in CMRESHandler.__LOGGING_FILTER_FIELDS:
