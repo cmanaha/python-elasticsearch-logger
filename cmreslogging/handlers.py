@@ -6,9 +6,6 @@ import datetime
 import socket
 from threading import Timer, Lock
 from enum import Enum
-import os
-import sys
-
 from elasticsearch import helpers as eshelpers
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 
@@ -24,8 +21,10 @@ try:
 except ImportError:
     AWS4AUTH_SUPPORTED = False
 
-sys.path.insert(0, os.path.abspath('.'))
-from cmreslogging.serializers import CMRESSerializer
+try:
+    from serializers import CMRESHandler
+except ImportError:
+    from cmreslogging.serializers import CMRESSerializer
 
 
 class CMRESHandler(logging.Handler):
