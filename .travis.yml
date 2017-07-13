@@ -4,11 +4,6 @@ python:
   - "2.7"
   - "3.6"
 
-before_install:
-  - sudo update-java-alternatives -s java-8-oracle
-  - export JAVA_HOME=/usr/lib/jvm/java-8-oracle/jre
-  - java -version
-
 install:
   - pip install tox-travis
   - pip install codecov
