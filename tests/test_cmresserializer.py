@@ -30,7 +30,7 @@ class CMRESSerializerTestCase(unittest.TestCase):
                                      func=None,
                                      extra=None)
         self.formatter.format(record)
-        for value in record.__dict__.itervalues():
+        for value in record.__dict__.values():
           try:
               serializer.dumps(value)
           except TypeError:
@@ -50,7 +50,7 @@ class CMRESSerializerTestCase(unittest.TestCase):
                                          func=None,
                                          extra=None)
         self.formatter.format(record)
-        for value in record.__dict__.itervalues():
+        for value in record.__dict__.values():
             try:
                 serializer.dumps(value)
             except TypeError:
@@ -68,7 +68,7 @@ class CMRESSerializerTestCase(unittest.TestCase):
                                      extra={'complexvalue1': datetime.date.today(),
                                             'complexvalue2': Decimal('3.0')})
         self.formatter.format(record)
-        for value in record.__dict__.itervalues():
+        for value in record.__dict__.values():
             try:
                 serializer.dumps(value)
             except TypeError:
