@@ -3,7 +3,6 @@ import logging
 import datetime
 import os
 import sys
-import numpy as np
 from decimal import *
 
 sys.path.insert(0, os.path.abspath('.'))
