@@ -5,8 +5,9 @@ from decimal import Decimal
 
 from elasticsearch.serializer import JSONSerializer
 
+
 class CMRESSerializer(JSONSerializer):
-    """ JSON serializer inherited from the elastic search JSON serializer 
+    """ JSON serializer inherited from the elastic search JSON serializer
 
     Allows to serialize logs for a elasticsearch use.
     Manage the record.exc_info containing an exception type.
@@ -14,13 +15,15 @@ class CMRESSerializer(JSONSerializer):
     def default(self, data):
         """ Default overrides the elasticsearch default method
 
-        Allows to transform unknown types into strings 
-        
-        :params data: The data to serialize before sending it to elastic search 
+        Allows to transform unknown types into strings
+
+        :params data: The data to serialize before sending it to elastic search
         """
+        result = None
         if isinstance(data, (date, datetime)):
-            return data.isoformat()
+            result = data.isoformat()
         elif isinstance(data, Decimal):
-            return float(data)
+            result = float(data)
         else:
-            return str(data)
+            result = str(data)
+        return result
