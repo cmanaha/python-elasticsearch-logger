@@ -21,7 +21,7 @@ try:
 except ImportError:
     AWS4AUTH_SUPPORTED = False
 
-from serializers import CMRESSerializer
+from cmreslogging.serializers import CMRESSerializer
 
 
 class CMRESHandler(logging.Handler):
