@@ -66,9 +66,8 @@ class CMRESSerializerTestCase(unittest.TestCase):
                                      args="args", 
                                      exc_info=False,
                                      func=None,
-                                     extra={'complexvalue1': np.int64(1),
-                                            'complexvalue2': datetime.date.today(),
-                                            'complexvalue3': Decimal('3.0')})
+                                     extra={'complexvalue1': datetime.date.today(),
+                                            'complexvalue2': Decimal('3.0')})
         self.formatter.format(record)
         for value in record.__dict__.itervalues():
             try:
