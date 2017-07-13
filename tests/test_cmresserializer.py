@@ -1,25 +1,37 @@
+""" Test class for the serializers module
+"""
 import unittest
 import logging
 import datetime
 import os
 import sys
-from decimal import *
+import decimal
 
 sys.path.insert(0, os.path.abspath('.'))
 from cmreslogging.serializers import CMRESSerializer
 
 
 class CMRESSerializerTestCase(unittest.TestCase):
+    """ CMRESSerializer test class
+    """
 
     def setUp(self):
+        """ Set up the test
+
+        Set up the log and the formatter to get asctime and exc_text fields
+        """
         self.log = logging.getLogger("MyTestCase")
         self.formatter = logging.Formatter('%(asctime)s')
 
     def tearDown(self):
+        """ Delete the log and the formatter
+        """
         del self.log
         del self.formatter
 
     def test_dumps_classic_log(self):
+        """ Test the classic log serialization
+        """
         serializer = CMRESSerializer()
         record = self.log.makeRecord(name=self.log.name,
                                      level=logging.INFO,
@@ -37,9 +49,11 @@ class CMRESSerializerTestCase(unittest.TestCase):
               self.fail("Serializer raised a TypeError exception")
 
     def test_dumps_exception_log(self):
+        """ Test the exception log serialization with the exc_info field
+        """
         serializer = CMRESSerializer()
         try:
-            badIdea = 1/0
+            bad_idea = 1/0
         except ZeroDivisionError:
             record = self.log.makeRecord(name=self.log.name,
                                          level=logging.ERROR,
@@ -57,6 +71,8 @@ class CMRESSerializerTestCase(unittest.TestCase):
                 self.fail("Serializer raised a TypeError exception")
 
     def test_dumps_log_with_extras_and_args(self):
+        """ Test the log serialization with arguments and extras complex parameters
+        """
         serializer = CMRESSerializer()
         record = self.log.makeRecord(name=self.log.name,
                                      level=logging.ERROR,
@@ -66,7 +82,7 @@ class CMRESSerializerTestCase(unittest.TestCase):
                                      exc_info=False,
                                      func=None,
                                      extra={'complexvalue1': datetime.date.today(),
-                                            'complexvalue2': Decimal('3.0')})
+                                            'complexvalue2': decimal.Decimal('3.0')})
         self.formatter.format(record)
         for value in record.__dict__.values():
             try:
