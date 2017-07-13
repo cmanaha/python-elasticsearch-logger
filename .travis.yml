@@ -4,13 +4,18 @@ python:
   - "2.7"
   - "3.6"
 
+before_install:
+  - sudo update-java-alternatives -s java-8-oracle
+  - export JAVA_HOME=/usr/lib/jvm/java-8-oracle/jre
+  - java -version
+
 install:
- - pip install tox-travis
- - pip install codecov
- - mkdir /tmp/elasticsearch
- - wget -O - http://s3-eu-west-1.amazonaws.com/build.eu-west-1.elastic.co/origin/2.0/nightly/JDK7/elasticsearch-latest-SNAPSHOT.tar.gz | tar xz --directory=/tmp/elasticsearch --strip-components=1
- - /tmp/elasticsearch/bin/elasticsearch -d --path.data /tmp --discovery.zen.ping.multicast.enabled false --script.inline on --script.indexed on --path.repo=/tmp --repositories.url.allowed_urls='http://*' --node.testattr=test
- - git clone https://github.com/elastic/elasticsearch.git ../elasticsearch
+  - pip install tox-travis
+  - pip install codecov
+  - mkdir /tmp/elasticsearch
+  - wget -O - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.5.0.tar.gz | tar xz --directory=/tmp/elasticsearch --strip-components=1
+  - /tmp/elasticsearch/bin/elasticsearch -d -E script.inline=true -E path.repo=/tmp -E repositories.url.allowed_urls='http://*' -E node.attr.testattr=test
+  - git clone https://github.com/elastic/elasticsearch.git ../elasticsearch
 
 script: tox
 
