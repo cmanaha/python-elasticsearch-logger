@@ -328,7 +328,7 @@ class CMRESHandler(logging.Handler):
         rec = self.es_additional_fields.copy()
         for key, value in record.__dict__.items():
             if key not in CMRESHandler.__LOGGING_FILTER_FIELDS:
-                rec[key] = "" if value is None else value
+                rec[key] = "" if value is None else str(value)
         rec[self.default_timestamp_field_name] = self.__get_es_datetime_str(record.created)
         with self._buffer_lock:
             self._buffer.append(rec)
