@@ -194,7 +194,7 @@ class CMRESHandler(logging.Handler):
 
             self.es_additional_fields.update({'host': socket.gethostname(),
                                               'host_ip': socket.gethostbyname(socket.gethostname())})
-        except:
+        except Exception:
             self.es_additional_fields.update({'host': 'localhost',
                                               'host_ip': '127.0.0.1'})
         self.raise_on_indexing_exceptions = raise_on_indexing_exceptions
