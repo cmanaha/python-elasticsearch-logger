@@ -59,6 +59,11 @@ class CMRESHandler(logging.Handler):
 
     # Defaults for the class
     __DEFAULT_ELASTICSEARCH_HOST = [{'host': 'localhost', 'port': 9200}]
+    __DEFAULT_SNIFF_ON_START = False,
+    __DEFAULT_SNIFFER_TIMEOUT = None,
+    __DEFAULT_SNIFF_ON_CONNECTION_FAIL = False,
+    __DEFAULT_SNIFF_TIMEOUT = .1,
+
     __DEFAULT_AUTH_USER = ''
     __DEFAULT_AUTH_PASSWD = ''
     __DEFAULT_AWS_ACCESS_KEY = ''
@@ -125,6 +130,10 @@ class CMRESHandler(logging.Handler):
     def __init__(self,
                  hosts=__DEFAULT_ELASTICSEARCH_HOST,
                  auth_details=(__DEFAULT_AUTH_USER, __DEFAULT_AUTH_PASSWD),
+                 sniff_on_start=__DEFAULT_SNIFF_ON_START,
+                 sniff_on_connection_fail=__DEFAULT_SNIFF_ON_CONNECTION_FAIL,
+                 sniffer_timeout=__DEFAULT_SNIFFER_TIMEOUT,
+                 sniff_timeout=__DEFAULT_SNIFF_TIMEOUT,
                  aws_access_key=__DEFAULT_AWS_ACCESS_KEY,
                  aws_secret_key=__DEFAULT_AWS_SECRET_KEY,
                  aws_region=__DEFAULT_AWS_REGION,
@@ -177,6 +186,10 @@ class CMRESHandler(logging.Handler):
         logging.Handler.__init__(self)
 
         self.hosts = hosts
+        self.sniff_on_start = sniff_on_start
+        self.sniff_on_connection_fail = sniff_on_connection_fail
+        self.sniffer_timeout = sniffer_timeout
+        self.sniff_timeout = sniff_timeout
         self.auth_details = auth_details
         self.aws_access_key = aws_access_key
         self.aws_secret_key = aws_secret_key
@@ -209,52 +222,56 @@ class CMRESHandler(logging.Handler):
             self._timer.start()
 
     def __get_es_client(self):
+        es_conn_kwargs = dict(
+            hosts=self.hosts,
+            use_ssl=self.use_ssl,
+            verify_certs=self.verify_certs,
+            serializer=self.serializer,
+            sniff_on_start=self.sniff_on_start,
+            sniff_on_connection_fail=self.sniff_on_connection_fail,
+            sniffer_timeout=self.sniffer_timeout,
+            sniff_timeout=self.sniff_timeout,
+        )
+
         if self.auth_type == CMRESHandler.AuthType.NO_AUTH:
             if self._client is None:
-                self._client = Elasticsearch(hosts=self.hosts,
-                                             use_ssl=self.use_ssl,
-                                             verify_certs=self.verify_certs,
-                                             connection_class=RequestsHttpConnection,
-                                             serializer=self.serializer)
-            return self._client
-
-        if self.auth_type == CMRESHandler.AuthType.BASIC_AUTH:
-            if self._client is None:
-                return Elasticsearch(hosts=self.hosts,
-                                     http_auth=self.auth_details,
-                                     use_ssl=self.use_ssl,
-                                     verify_certs=self.verify_certs,
-                                     connection_class=RequestsHttpConnection,
-                                     serializer=self.serializer)
-            return self._client
-
-        if self.auth_type == CMRESHandler.AuthType.KERBEROS_AUTH:
+                es_conn_kwargs.update(
+                    connection_class=RequestsHttpConnection,
+                )
+                self._client = Elasticsearch(**es_conn_kwargs)
+        elif self.auth_type == CMRESHandler.AuthType.BASIC_AUTH:
+            es_conn_kwargs.update(
+                http_auth=self.auth_details,
+                connection_class=RequestsHttpConnection,
+            )
+            return Elasticsearch(**es_conn_kwargs)
+        elif self.auth_type == CMRESHandler.AuthType.KERBEROS_AUTH:
             if not CMR_KERBEROS_SUPPORTED:
-                raise EnvironmentError("Kerberos module not available. Please install \"requests-kerberos\"")
+                raise EnvironmentError(
+                    "Kerberos module not available. "
+                    "Please install \"requests-kerberos\""
+                )
             # For kerberos we return a new client each time to make sure the tokens are up to date
-            return Elasticsearch(hosts=self.hosts,
-                                 use_ssl=self.use_ssl,
-                                 verify_certs=self.verify_certs,
-                                 connection_class=RequestsHttpConnection,
-                                 http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED),
-                                 serializer=self.serializer)
-
-        if self.auth_type == CMRESHandler.AuthType.AWS_SIGNED_AUTH:
+            es_conn_kwargs.update(
+                connection_class=RequestsHttpConnection,
+                http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED),
+            )
+            return Elasticsearch(**es_conn_kwargs)
+        elif self.auth_type == CMRESHandler.AuthType.AWS_SIGNED_AUTH:
             if not AWS4AUTH_SUPPORTED:
                 raise EnvironmentError("AWS4Auth not available. Please install \"requests-aws4auth\"")
             if self._client is None:
                 awsauth = AWS4Auth(self.aws_access_key, self.aws_secret_key, self.aws_region, 'es')
-                self._client = Elasticsearch(
-                    hosts=self.hosts,
+                es_conn_kwargs.update(
                     http_auth=awsauth,
-                    use_ssl=self.use_ssl,
                     verify_certs=True,
                     connection_class=RequestsHttpConnection,
-                    serializer=self.serializer
                 )
-            return self._client
+                self._client = Elasticsearch(**es_conn_kwargs)
+        else:
+            raise ValueError("Authentication method not supported")
 
-        raise ValueError("Authentication method not supported")
+        return self._client
 
     def test_es_source(self):
         """ Returns True if the handler can ping the Elasticsearch servers
