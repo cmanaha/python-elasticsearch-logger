@@ -59,11 +59,10 @@ class CMRESHandler(logging.Handler):
 
     # Defaults for the class
     __DEFAULT_ELASTICSEARCH_HOST = [{'host': 'localhost', 'port': 9200}]
-    __DEFAULT_SNIFF_ON_START = False,
-    __DEFAULT_SNIFFER_TIMEOUT = None,
-    __DEFAULT_SNIFF_ON_CONNECTION_FAIL = False,
-    __DEFAULT_SNIFF_TIMEOUT = .1,
-
+    __DEFAULT_SNIFF_ON_START = False
+    __DEFAULT_SNIFFER_TIMEOUT = None
+    __DEFAULT_SNIFF_ON_CONNECTION_FAIL = False
+    __DEFAULT_SNIFF_TIMEOUT = .1
     __DEFAULT_AUTH_USER = ''
     __DEFAULT_AUTH_PASSWD = ''
     __DEFAULT_AWS_ACCESS_KEY = ''
