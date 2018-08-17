@@ -5,6 +5,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
 from cmreslogging.handlers import CMRESHandler
+import elasticsearch
 
 
 class CMRESHandlerTestCase(unittest.TestCase):
@@ -168,6 +169,37 @@ class CMRESHandlerTestCase(unittest.TestCase):
             handler._index_name_func.__func__(index_name),
             CMRESHandler._get_yearly_index_name(index_name)
         )
+
+    def test_pipelined_insert(self):
+        index_name = 'pythontest'
+        handler = CMRESHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
+                               auth_type=CMRESHandler.AuthType.NO_AUTH,
+                               es_index_name=index_name,
+                               use_ssl=False,
+                               index_name_frequency=CMRESHandler.IndexNameFrequency.DAILY,
+                               raise_on_indexing_exceptions=True,
+                               es_ingest_pipeline='pythontestpipeline')
+        log = logging.getLogger("PythonTest")
+        log.setLevel(logging.DEBUG)
+        log.addHandler(handler)
+
+        pipeline_definition = {
+            'description': 'split multiline message pipeline',
+            'processors': [
+                {
+                    'split': {
+                        'field': 'message',
+                        'separator': '\n'
+                    }
+                }
+            ]
+        }
+
+        ingest_client = elasticsearch.client.IngestClient(handler._CMRESHandler__get_es_client())
+        ingest_client.put_pipeline(id='pythontestpipeline', body=pipeline_definition)
+        log.info('multiline\nlog')
+        handler.flush()
+        self.assertEqual(0, len(handler._buffer))
 
 
 if __name__ == '__main__':
