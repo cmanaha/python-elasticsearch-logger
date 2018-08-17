@@ -75,6 +75,7 @@ class CMRESHandler(logging.Handler):
     __DEFAULT_ES_DOC_TYPE = 'python_log'
     __DEFAULT_RAISE_ON_EXCEPTION = False
     __DEFAULT_TIMESTAMP_FIELD_NAME = "timestamp"
+    __DEFAULT_ES_INGEST_PIPELINE = None
 
     __LOGGING_FILTER_FIELDS = ['msecs',
                                'relativeCreated',
@@ -138,7 +139,8 @@ class CMRESHandler(logging.Handler):
                  es_doc_type=__DEFAULT_ES_DOC_TYPE,
                  es_additional_fields=__DEFAULT_ADDITIONAL_FIELDS,
                  raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_EXCEPTION,
-                 default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME):
+                 default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME,
+                 es_ingest_pipeline=__DEFAULT_ES_INGEST_PIPELINE):
         """ Handler constructor
 
         :param hosts: The list of hosts that elasticsearch clients will connect. The list can be provided
@@ -172,6 +174,8 @@ class CMRESHandler(logging.Handler):
                     to the logs, such the application, environment, etc.
         :param raise_on_indexing_exceptions: A boolean, True only for debugging purposes to raise exceptions
                     caused when
+        :param es_ingest_pipeline: A string identifying an ingest pipeline on the elasticserach host. No pipeline
+                    is used by default.
         :return: A ready to be used CMRESHandler.
         """
         logging.Handler.__init__(self)
@@ -194,6 +198,7 @@ class CMRESHandler(logging.Handler):
                                           'host_ip': socket.gethostbyname(socket.gethostname())})
         self.raise_on_indexing_exceptions = raise_on_indexing_exceptions
         self.default_timestamp_field_name = default_timestamp_field_name
+        self.es_ingest_pipeline = es_ingest_pipeline
 
         self._client = None
         self._buffer = []
@@ -266,6 +271,15 @@ class CMRESHandler(logging.Handler):
         """
         return self.__get_es_client().ping()
 
+    def __get_bulk_metadata(self):
+        metadata = {
+            '_index': self._index_name_func.__func__(self.es_index_name),
+            '_type': self.es_doc_type
+        }
+        if self.es_ingest_pipeline is not None:
+            metadata['pipeline'] = self.es_ingest_pipeline
+        return metadata
+
     @staticmethod
     def __get_es_datetime_str(timestamp):
         """ Returns elasticsearch utc formatted time for an epoch timestamp
@@ -289,12 +303,12 @@ class CMRESHandler(logging.Handler):
                 with self._buffer_lock:
                     logs_buffer = self._buffer
                     self._buffer = []
+                metadata = self.__get_bulk_metadata()
                 actions = (
-                    {
-                        '_index': self._index_name_func.__func__(self.es_index_name),
-                        '_type': self.es_doc_type,
-                        '_source': log_record
-                    }
+                    dict(
+                        _source=log_record,
+                        **metadata
+                    )
                     for log_record in logs_buffer
                 )
                 eshelpers.bulk(
