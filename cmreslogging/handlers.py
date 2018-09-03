@@ -38,11 +38,13 @@ class CMRESHandler(logging.Handler):
          - No authentication
          - Basic authentication
          - Kerberos or SSO authentication (on windows and linux)
+         - Authentication using certificate
         """
         NO_AUTH = 0
         BASIC_AUTH = 1
         KERBEROS_AUTH = 2
         AWS_SIGNED_AUTH = 3
+        CERT_AUTH = 4
 
     class IndexNameFrequency(Enum):
         """ Index type supported
@@ -138,7 +140,9 @@ class CMRESHandler(logging.Handler):
                  es_doc_type=__DEFAULT_ES_DOC_TYPE,
                  es_additional_fields=__DEFAULT_ADDITIONAL_FIELDS,
                  raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_EXCEPTION,
-                 default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME):
+                 default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME,
+                 client_cert=None,
+                 ca_certs=None):
         """ Handler constructor
 
         :param hosts: The list of hosts that elasticsearch clients will connect. The list can be provided
@@ -172,6 +176,8 @@ class CMRESHandler(logging.Handler):
                     to the logs, such the application, environment, etc.
         :param raise_on_indexing_exceptions: A boolean, True only for debugging purposes to raise exceptions
                     caused when
+        :param client_cert: String (path to a cert) or tuple (in the case of cert + key). Passed to requests session.
+        :param ca_certs: String, path to CA certificate (or a bundle).
         :return: A ready to be used CMRESHandler.
         """
         logging.Handler.__init__(self)
@@ -194,6 +200,8 @@ class CMRESHandler(logging.Handler):
                                           'host_ip': socket.gethostbyname(socket.gethostname())})
         self.raise_on_indexing_exceptions = raise_on_indexing_exceptions
         self.default_timestamp_field_name = default_timestamp_field_name
+        self.client_cert = client_cert
+        self.ca_certs = ca_certs
 
         self._client = None
         self._buffer = []
@@ -209,13 +217,17 @@ class CMRESHandler(logging.Handler):
             self._timer.start()
 
     def __get_es_client(self):
-        if self.auth_type == CMRESHandler.AuthType.NO_AUTH:
+        if self.auth_type in [CMRESHandler.AuthType.NO_AUTH, CMRESHandler.AuthType.CERT_AUTH]:
+            if self.auth_type == CMRESHandler.AuthType.CERT_AUTH and self.client_cert is None:
+                raise ValueError("client_cert parameter is required for CERT_AUTH")
             if self._client is None:
                 self._client = Elasticsearch(hosts=self.hosts,
                                              use_ssl=self.use_ssl,
                                              verify_certs=self.verify_certs,
                                              connection_class=RequestsHttpConnection,
-                                             serializer=self.serializer)
+                                             serializer=self.serializer,
+                                             client_cert=self.client_cert,
+                                             ca_certs=self.ca_certs)
             return self._client
 
         if self.auth_type == CMRESHandler.AuthType.BASIC_AUTH:
@@ -225,7 +237,9 @@ class CMRESHandler(logging.Handler):
                                      use_ssl=self.use_ssl,
                                      verify_certs=self.verify_certs,
                                      connection_class=RequestsHttpConnection,
-                                     serializer=self.serializer)
+                                     serializer=self.serializer,
+                                     client_cert=self.client_cert,
+                                     ca_certs=self.ca_certs)
             return self._client
 
         if self.auth_type == CMRESHandler.AuthType.KERBEROS_AUTH:
@@ -237,7 +251,9 @@ class CMRESHandler(logging.Handler):
                                  verify_certs=self.verify_certs,
                                  connection_class=RequestsHttpConnection,
                                  http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED),
-                                 serializer=self.serializer)
+                                 serializer=self.serializer,
+                                 client_cert=self.client_cert,
+                                 ca_certs=self.ca_certs)
 
         if self.auth_type == CMRESHandler.AuthType.AWS_SIGNED_AUTH:
             if not AWS4AUTH_SUPPORTED:
@@ -250,8 +266,9 @@ class CMRESHandler(logging.Handler):
                     use_ssl=self.use_ssl,
                     verify_certs=True,
                     connection_class=RequestsHttpConnection,
-                    serializer=self.serializer
-                )
+                    serializer=self.serializer,
+                    client_cert=self.client_cert,
+                    ca_certs=self.ca_certs)
             return self._client
 
         raise ValueError("Authentication method not supported")
