@@ -138,7 +138,9 @@ class CMRESHandler(logging.Handler):
                  es_doc_type=__DEFAULT_ES_DOC_TYPE,
                  es_additional_fields=__DEFAULT_ADDITIONAL_FIELDS,
                  raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_EXCEPTION,
-                 default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME):
+                 default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME,
+                 es_retry_on_timeout=False,
+                 es_timeout=10):
         """ Handler constructor
 
         :param hosts: The list of hosts that elasticsearch clients will connect. The list can be provided
@@ -172,6 +174,10 @@ class CMRESHandler(logging.Handler):
                     to the logs, such the application, environment, etc.
         :param raise_on_indexing_exceptions: A boolean, True only for debugging purposes to raise exceptions
                     caused when
+        :param es_retry_on_timeout: A bool value, passed to Elasticsearch object. Specifies if bulk_send retry
+                    sending logs after timeout.
+        :param es_timeout: An integer value, in seconds, passed to Elasticsearch object. Specifies client-side
+                    timeout when performing bulk_send.
         :return: A ready to be used CMRESHandler.
         """
         logging.Handler.__init__(self)
@@ -194,6 +200,8 @@ class CMRESHandler(logging.Handler):
                                           'host_ip': socket.gethostbyname(socket.gethostname())})
         self.raise_on_indexing_exceptions = raise_on_indexing_exceptions
         self.default_timestamp_field_name = default_timestamp_field_name
+        self.es_retry_on_timeout = es_retry_on_timeout
+        self.es_timeout = es_timeout
 
         self._client = None
         self._buffer = []
@@ -215,7 +223,9 @@ class CMRESHandler(logging.Handler):
                                              use_ssl=self.use_ssl,
                                              verify_certs=self.verify_certs,
                                              connection_class=RequestsHttpConnection,
-                                             serializer=self.serializer)
+                                             serializer=self.serializer,
+                                             retry_on_timeout=self.es_retry_on_timeout,
+                                             timeout=self.es_timeout)
             return self._client
 
         if self.auth_type == CMRESHandler.AuthType.BASIC_AUTH:
@@ -225,7 +235,9 @@ class CMRESHandler(logging.Handler):
                                      use_ssl=self.use_ssl,
                                      verify_certs=self.verify_certs,
                                      connection_class=RequestsHttpConnection,
-                                     serializer=self.serializer)
+                                     serializer=self.serializer,
+                                     retry_on_timeout=self.es_retry_on_timeout,
+                                     timeout=self.es_timeout)
             return self._client
 
         if self.auth_type == CMRESHandler.AuthType.KERBEROS_AUTH:
@@ -237,7 +249,9 @@ class CMRESHandler(logging.Handler):
                                  verify_certs=self.verify_certs,
                                  connection_class=RequestsHttpConnection,
                                  http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED),
-                                 serializer=self.serializer)
+                                 serializer=self.serializer,
+                                 retry_on_timeout=self.es_retry_on_timeout,
+                                 timeout=self.es_timeout)
 
         if self.auth_type == CMRESHandler.AuthType.AWS_SIGNED_AUTH:
             if not AWS4AUTH_SUPPORTED:
@@ -250,7 +264,9 @@ class CMRESHandler(logging.Handler):
                     use_ssl=self.use_ssl,
                     verify_certs=True,
                     connection_class=RequestsHttpConnection,
-                    serializer=self.serializer
+                    serializer=self.serializer,
+                    retry_on_timeout=self.es_retry_on_timeout,
+                    timeout=self.es_timeout
                 )
             return self._client
 
