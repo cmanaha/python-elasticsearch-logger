@@ -167,11 +167,11 @@ In some cases is quite useful to provide all the information available within th
 things such as exception information, the method, file, log line where the log was generated.
 
 If you are interested on understanding more about the differences between the agent vs handler
-approach, I'd suggest reading [this conversation thread](https://github.com/cmanaha/python-elasticsearch-logger/issues/44).
+approach, I'd suggest reading `this conversation thread <https://github.com/cmanaha/python-elasticsearch-logger/issues/44/>`_
 
 The same functionality can be implemented in many other different ways. For example, consider the integration
-using [SysLogHandler](https://docs.python.org/3/library/logging.handlers.html#sysloghandler) and
-[logstash syslog plugin](https://www.elastic.co/guide/en/logstash/current/plugins-inputs-syslog.html).
+using `SysLogHandler<https://docs.python.org/3/library/logging.handlers.html#sysloghandler>`_ and
+`logstash syslog plugin<https://www.elastic.co/guide/en/logstash/current/plugins-inputs-syslog.html>`_.
 
 
 Contributing back
