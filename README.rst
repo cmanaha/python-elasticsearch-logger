@@ -170,8 +170,8 @@ If you are interested on understanding more about the differences between the ag
 approach, I'd suggest reading `this conversation thread <https://github.com/cmanaha/python-elasticsearch-logger/issues/44/>`_
 
 The same functionality can be implemented in many other different ways. For example, consider the integration
-using `SysLogHandler<https://docs.python.org/3/library/logging.handlers.html#sysloghandler>`_ and
-`logstash syslog plugin<https://www.elastic.co/guide/en/logstash/current/plugins-inputs-syslog.html>`_.
+using `SysLogHandler <https://docs.python.org/3/library/logging.handlers.html#sysloghandler>`_ and
+`logstash syslog plugin <https://www.elastic.co/guide/en/logstash/current/plugins-inputs-syslog.html>`_.
 
 
 Contributing back
