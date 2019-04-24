@@ -176,9 +176,9 @@ class CMRESHandler(logging.Handler):
                     to the logs, such the application, environment, etc.
         :param raise_on_indexing_exceptions: A boolean, True only for debugging purposes to raise exceptions
                     caused when
-        :param es_retry_on_timeout: A bool value, passed to Elasticsearch object. Specifies if bulk_send retry
+        :param es_retry_on_timeout: A boolean that defines if sending of logs should be re-tried after a timeout. 
                     sending logs after timeout.
-        :param es_timeout: An integer value, in seconds, passed to Elasticsearch object. Specifies client-side
+        :param es_timeout: An int that specifies, in seconds, the timeout on the client side when sending logs.
                     timeout when performing bulk_send.
         :return: A ready to be used CMRESHandler.
         """
