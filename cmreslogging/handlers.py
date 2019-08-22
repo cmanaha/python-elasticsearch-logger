@@ -201,7 +201,7 @@ class CMRESHandler(logging.Handler):
 
     def __get_es_client(self):
 
-        return FactoryClientES.get_client(cmrs_handler=self)
+        return FactoryClientES.get_client(cmrs_handler=self).get()
 
     def test_es_source(self):
         """ Returns True if the handler can ping the Elasticsearch servers
