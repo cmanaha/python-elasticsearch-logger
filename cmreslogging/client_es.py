@@ -20,15 +20,6 @@ KERBEROS_AUTH = 2
 AWS_SIGNED_AUTH = 3
 
 
-class FactoryClientES:
-    @staticmethod
-    def get_client(cmrs_handler):
-        for klass in ClientElasticSearch.__subclasses__():
-            if klass.TYPE_CLIENT == cmrs_handler.auth_type.value:
-                return klass(cmrs_handler).get()
-        raise ValueError("Authentication method not supported")
-
-
 class ClientElasticSearch:
 
     def __init__(self, cmrs_handler):
@@ -44,7 +35,7 @@ class ClientNotAuth(ClientElasticSearch):
     TYPE_CLIENT = NO_AUTH
 
     def __init__(self, cmrs_handler):
-        super(ClientNotAuth, self).__init__(cmrs_handler)
+        ClientElasticSearch.__init__(self, cmrs_handler)
 
     def get(self):
         if self._cmrs_handler._client is None:
@@ -61,7 +52,7 @@ class ClientBasicAuth(ClientElasticSearch):
     TYPE_CLIENT = BASIC_AUTH
 
     def __init__(self, cmrs_handler):
-        super(ClientBasicAuth, self).__init__(cmrs_handler)
+        ClientElasticSearch.__init__(self, cmrs_handler)
 
     def get(self):
 
@@ -80,10 +71,10 @@ class ClientKerberos(ClientElasticSearch):
     TYPE_CLIENT = KERBEROS_AUTH
 
     def __init__(self, cmrs_handler):
-        super(ClientKerberos, self).__init__(cmrs_handler)
-        self._cmrs_handler._validation_environment_error(CMR_KERBEROS_SUPPORTED, MSG_KERBEROS)
+        ClientElasticSearch.__init__(self, cmrs_handler)
 
     def get(self):
+        self._validation_environment_error(CMR_KERBEROS_SUPPORTED, MSG_KERBEROS)
 
         # For kerberos we return a new client each time to make sure the tokens are up to date
         return Elasticsearch(hosts=self._cmrs_handler.hosts,
@@ -98,12 +89,11 @@ class ClientAmazon(ClientElasticSearch):
     TYPE_CLIENT = AWS_SIGNED_AUTH
 
     def __init__(self, cmrs_handler):
-        super(ClientAmazon, self).__init__(cmrs_handler)
-
-        self._validation_environment_error(AWS4AUTH_SUPPORTED, MSG_AWS)
+        ClientElasticSearch.__init__(self, cmrs_handler)
 
     def get(self):
 
+        self._validation_environment_error(AWS4AUTH_SUPPORTED, MSG_AWS)
         if self._cmrs_handler._client is None:
             awsauth = AWS4Auth(self._cmrs_handler.aws_access_key,
                                self._cmrs_handler.aws_secret_key,
@@ -117,3 +107,19 @@ class ClientAmazon(ClientElasticSearch):
                 serializer=self._cmrs_handler.serializer)
 
         return self._cmrs_handler._client
+
+
+class FactoryClientES:
+
+    CLIENTS = {NO_AUTH: ClientNotAuth,
+               AWS_SIGNED_AUTH: ClientAmazon,
+               BASIC_AUTH: ClientBasicAuth,
+               KERBEROS_AUTH: ClientKerberos}
+
+    @staticmethod
+    def get_client(cmrs_handler):
+        klass = FactoryClientES.CLIENTS.get(cmrs_handler.auth_type.value)
+        if not klass:
+            raise ValueError("Authentication method not supported")
+
+        return klass(cmrs_handler)
