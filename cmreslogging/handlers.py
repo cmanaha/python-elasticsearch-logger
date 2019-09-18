@@ -56,6 +56,7 @@ class CMRESHandler(logging.Handler):
         WEEKLY = 1
         MONTHLY = 2
         YEARLY = 3
+        DISABLED = 10
 
     # Defaults for the class
     __DEFAULT_ELASTICSEARCH_HOST = [{'host': 'localhost', 'port': 9200}]
@@ -115,11 +116,20 @@ class CMRESHandler(logging.Handler):
         """
         return "{0!s}-{1!s}".format(es_index_name, datetime.datetime.now().strftime('%Y'))
 
+    @staticmethod
+    def _get_disabled_index_name(es_index_name):
+        """ Returns elasticearch index name
+        :param: index_name the prefix to be used in the index
+        :return: A srting containing the elasticsearch indexname used which does not include the date.
+        """
+        return es_index_name
+
     _INDEX_FREQUENCY_FUNCION_DICT = {
         IndexNameFrequency.DAILY: _get_daily_index_name,
         IndexNameFrequency.WEEKLY: _get_weekly_index_name,
         IndexNameFrequency.MONTHLY: _get_monthly_index_name,
-        IndexNameFrequency.YEARLY: _get_yearly_index_name
+        IndexNameFrequency.YEARLY: _get_yearly_index_name,
+        IndexNameFrequency.DISABLED: _get_disabled_index_name
     }
 
     def __init__(self,
@@ -160,12 +170,13 @@ class CMRESHandler(logging.Handler):
         :param buffer_size: An int, Once this size is reached on the internal buffer results are flushed into ES
         :param flush_frequency_in_sec: A float representing how often and when the buffer will be flushed, even
                     if the buffer_size has not been reached yet
-        :param es_index_name: A string with the prefix of the elasticsearch index that will be created. Note a
-                    date with YYYY.MM.dd, ```python_logger``` used by default
-        :param index_name_frequency: Defines what the date used in the postfix of the name would be. available values
-                    are selected from the IndexNameFrequency class (IndexNameFrequency.DAILY,
-                    IndexNameFrequency.WEEKLY, IndexNameFrequency.MONTHLY, IndexNameFrequency.YEARLY). By default
-                    it uses daily indices.
+        :param es_index_name: A string with the prefix of the elasticsearch index that will be created if
+                    index_name_frequency not in DISABLED state. Note a date with YYYY.MM.dd, ```python_logger```
+                    used by default
+        :param index_name_frequency: Defines what the date used in the postfix of the name would be (if not DISABLED).
+                    Available values are selected from the IndexNameFrequency class (IndexNameFrequency.DAILY,
+                    IndexNameFrequency.WEEKLY, IndexNameFrequency.MONTHLY, IndexNameFrequency.YEARLY,
+                    IndexNameFrequency.DISABLED). By default it uses daily indices.
         :param es_doc_type: A string with the name of the document type that will be used ```python_log``` used
                     by default
         :param es_additional_fields: A dictionary with all the additional fields that you would like to add
