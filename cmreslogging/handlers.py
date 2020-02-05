@@ -43,6 +43,7 @@ class CMRESHandler(logging.Handler):
         BASIC_AUTH = 1
         KERBEROS_AUTH = 2
         AWS_SIGNED_AUTH = 3
+        API_KEY_AUTH = 4
 
     class IndexNameFrequency(Enum):
         """ Index type supported
@@ -252,6 +253,16 @@ class CMRESHandler(logging.Handler):
                     connection_class=RequestsHttpConnection,
                     serializer=self.serializer
                 )
+            return self._client
+
+        if self.auth_type == CMRESHandler.AuthType.API_KEY_AUTH:
+            if self._client is None:
+                return Elasticsearch(hosts=self.hosts,
+                                     api_key=self.auth_details,
+                                     use_ssl=self.use_ssl,
+                                     verify_certs=self.verify_certs,
+                                     connection_class=RequestsHttpConnection,
+                                     serializer=self.serializer)
             return self._client
 
         raise ValueError("Authentication method not supported")
