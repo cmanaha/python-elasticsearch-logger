@@ -19,12 +19,10 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 dependencies = [
     'elasticsearch',
-    'requests'
+    'requests',
+    # If python version is above 3.4 (built in enums supported enums)
+    'enum; python_version <= "3.4"'
 ]
-
-# If python version is above 3.4 (built in enums supported enums)
-if sys.version_info <= (3,4):
-    dependencies.append('enum')
 
 print("List of dependencies : {0}".format(str(dependencies)))
 
