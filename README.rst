@@ -106,8 +106,8 @@ The constructors takes the following parameters:
  - verify_ssl: A boolean that defines if the SSL certificates are validated or not
  - buffer_size: An int, Once this size is reached on the internal buffer results are flushed into ES
  - flush_frequency_in_sec: A float representing how often and when the buffer will be flushed
- - es_index_name: A string with the prefix of the elasticsearch index that will be created. Note a date with
-   YYYY.MM.dd, ``python_logger`` used by default
+ - es_index_name: A string with the prefix of the elasticsearch index that will be created. Note that a pattern is applied:
+   ``{es_index_name}-{YYYY.MM.dd}``. The default ``es_index_name`` is ``python_logger``
  - index_name_frequency: The frequency to use as part of the index naming. Currently supports
    CMRESHandler.IndexNameFrequency.DAILY, CMRESHandler.IndexNameFrequency.WEEKLY,
    CMRESHandler.IndexNameFrequency.MONTHLY, CMRESHandler.IndexNameFrequency.YEARLY by default the daily rotation
