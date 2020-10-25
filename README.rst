@@ -7,6 +7,9 @@ CMRESHandler.py
 |  |ci_status| |codecov| |gitter|
 
 
+** Note: Maintainers needed : For those that have commited in the past code to this repo or are presenting new PRs and have experience and interest on helping to maintain this repo. Please get in touch. **
+
+
 Python Elasticsearch Log handler
 ********************************
 
