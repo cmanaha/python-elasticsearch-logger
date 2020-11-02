@@ -112,8 +112,8 @@ The constructors takes the following parameters:
  - es_index_name: A string with the prefix of the elasticsearch index that will be created. Note a date with
    YYYY.MM.dd, ``python_logger`` used by default
  - index_name_frequency: The frequency to use as part of the index naming. Currently supports
-   CMRESHandler.IndexNameFrequency.DAILY, CMRESHandler.IndexNameFrequency.WEEKLY,
-   CMRESHandler.IndexNameFrequency.MONTHLY, CMRESHandler.IndexNameFrequency.YEARLY by default the daily rotation
+   ``CMRESHandler.IndexNameFrequency.DAILY``, ``CMRESHandler.IndexNameFrequency.WEEKLY``,
+   ``CMRESHandler.IndexNameFrequency.MONTHLY``, ``CMRESHandler.IndexNameFrequency.YEARLY`` and ``CMRESHandler.IndexNameFrequency.NEVER``. By default the daily rotation
    is used
  - es_doc_type: A string with the name of the document type that will be used ``python_log`` used by default
  - es_additional_fields: A dictionary with all the additional fields that you would like to add to the logs
