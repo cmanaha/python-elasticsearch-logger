@@ -79,6 +79,7 @@ class CMRESHandler(logging.Handler):
     __LOGGING_FILTER_FIELDS = ['msecs',
                                'relativeCreated',
                                'levelno',
+                               'msg',
                                'created']
 
     @staticmethod
