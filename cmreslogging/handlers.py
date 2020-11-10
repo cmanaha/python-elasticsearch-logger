@@ -1,27 +1,18 @@
 """ Elasticsearch logging handler
 """
 
-import logging
 import datetime
+import logging
 import socket
-from threading import Timer, Lock
 from enum import Enum
+from threading import Lock, Timer
+
 from elasticsearch import helpers as eshelpers
-from elasticsearch import Elasticsearch, RequestsHttpConnection
-
-try:
-    from requests_kerberos import HTTPKerberosAuth, DISABLED
-    CMR_KERBEROS_SUPPORTED = True
-except ImportError:
-    CMR_KERBEROS_SUPPORTED = False
-
-try:
-    from requests_aws4auth import AWS4Auth
-    AWS4AUTH_SUPPORTED = True
-except ImportError:
-    AWS4AUTH_SUPPORTED = False
 
 from cmreslogging.serializers import CMRESSerializer
+
+from .client_es import (AWS_SIGNED_AUTH, BASIC_AUTH, KERBEROS_AUTH, NO_AUTH,
+                        FactoryClientES)
 
 
 class CMRESHandler(logging.Handler):
@@ -39,10 +30,10 @@ class CMRESHandler(logging.Handler):
          - Basic authentication
          - Kerberos or SSO authentication (on windows and linux)
         """
-        NO_AUTH = 0
-        BASIC_AUTH = 1
-        KERBEROS_AUTH = 2
-        AWS_SIGNED_AUTH = 3
+        NO_AUTH = NO_AUTH
+        BASIC_AUTH = BASIC_AUTH
+        KERBEROS_AUTH = KERBEROS_AUTH
+        AWS_SIGNED_AUTH = AWS_SIGNED_AUTH
 
     class IndexNameFrequency(Enum):
         """ Index type supported
@@ -209,52 +200,8 @@ class CMRESHandler(logging.Handler):
             self._timer.start()
 
     def __get_es_client(self):
-        if self.auth_type == CMRESHandler.AuthType.NO_AUTH:
-            if self._client is None:
-                self._client = Elasticsearch(hosts=self.hosts,
-                                             use_ssl=self.use_ssl,
-                                             verify_certs=self.verify_certs,
-                                             connection_class=RequestsHttpConnection,
-                                             serializer=self.serializer)
-            return self._client
 
-        if self.auth_type == CMRESHandler.AuthType.BASIC_AUTH:
-            if self._client is None:
-                return Elasticsearch(hosts=self.hosts,
-                                     http_auth=self.auth_details,
-                                     use_ssl=self.use_ssl,
-                                     verify_certs=self.verify_certs,
-                                     connection_class=RequestsHttpConnection,
-                                     serializer=self.serializer)
-            return self._client
-
-        if self.auth_type == CMRESHandler.AuthType.KERBEROS_AUTH:
-            if not CMR_KERBEROS_SUPPORTED:
-                raise EnvironmentError("Kerberos module not available. Please install \"requests-kerberos\"")
-            # For kerberos we return a new client each time to make sure the tokens are up to date
-            return Elasticsearch(hosts=self.hosts,
-                                 use_ssl=self.use_ssl,
-                                 verify_certs=self.verify_certs,
-                                 connection_class=RequestsHttpConnection,
-                                 http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED),
-                                 serializer=self.serializer)
-
-        if self.auth_type == CMRESHandler.AuthType.AWS_SIGNED_AUTH:
-            if not AWS4AUTH_SUPPORTED:
-                raise EnvironmentError("AWS4Auth not available. Please install \"requests-aws4auth\"")
-            if self._client is None:
-                awsauth = AWS4Auth(self.aws_access_key, self.aws_secret_key, self.aws_region, 'es')
-                self._client = Elasticsearch(
-                    hosts=self.hosts,
-                    http_auth=awsauth,
-                    use_ssl=self.use_ssl,
-                    verify_certs=True,
-                    connection_class=RequestsHttpConnection,
-                    serializer=self.serializer
-                )
-            return self._client
-
-        raise ValueError("Authentication method not supported")
+        return FactoryClientES.get_client(cmrs_handler=self).get()
 
     def test_es_source(self):
         """ Returns True if the handler can ping the Elasticsearch servers
