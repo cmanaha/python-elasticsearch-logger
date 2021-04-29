@@ -75,6 +75,7 @@ class CMRESHandler(logging.Handler):
     __DEFAULT_ES_DOC_TYPE = 'python_log'
     __DEFAULT_RAISE_ON_EXCEPTION = False
     __DEFAULT_TIMESTAMP_FIELD_NAME = "timestamp"
+    __DEFAULT_ES_ACTIVE_DOC_TYPE = True
 
     __LOGGING_FILTER_FIELDS = ['msecs',
                                'relativeCreated',
@@ -138,7 +139,8 @@ class CMRESHandler(logging.Handler):
                  es_doc_type=__DEFAULT_ES_DOC_TYPE,
                  es_additional_fields=__DEFAULT_ADDITIONAL_FIELDS,
                  raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_EXCEPTION,
-                 default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME):
+                 default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME,
+                 es_active_doc_type=__DEFAULT_ES_ACTIVE_DOC_TYPE):
         """ Handler constructor
 
         :param hosts: The list of hosts that elasticsearch clients will connect. The list can be provided
@@ -168,6 +170,8 @@ class CMRESHandler(logging.Handler):
                     it uses daily indices.
         :param es_doc_type: A string with the name of the document type that will be used ```python_log``` used
                     by default
+        :param es_active_doc_type: For versions> = 7.0 the type function is obsolete from the index,
+                    if you use a version that is not compatible, mark it as False, the default is True
         :param es_additional_fields: A dictionary with all the additional fields that you would like to add
                     to the logs, such the application, environment, etc.
         :param raise_on_indexing_exceptions: A boolean, True only for debugging purposes to raise exceptions
@@ -189,6 +193,7 @@ class CMRESHandler(logging.Handler):
         self.es_index_name = es_index_name
         self.index_name_frequency = index_name_frequency
         self.es_doc_type = es_doc_type
+        self.es_active_doc_type = es_active_doc_type
         self.es_additional_fields = es_additional_fields.copy()
         self.es_additional_fields.update({'host': socket.gethostname(),
                                           'host_ip': socket.gethostbyname(socket.gethostname())})
@@ -289,14 +294,23 @@ class CMRESHandler(logging.Handler):
                 with self._buffer_lock:
                     logs_buffer = self._buffer
                     self._buffer = []
-                actions = (
-                    {
-                        '_index': self._index_name_func.__func__(self.es_index_name),
-                        '_type': self.es_doc_type,
-                        '_source': log_record
-                    }
-                    for log_record in logs_buffer
-                )
+                if self.self.es_active_doc_type:
+                    actions = (
+                        {
+                            '_index': self._index_name_func.__func__(self.es_index_name),
+                            '_type': self.es_doc_type,
+                            '_source': log_record
+                        }
+                        for log_record in logs_buffer
+                    )
+                else:
+                    actions = (
+                        {
+                            '_index': self._index_name_func.__func__(self.es_index_name),
+                            '_source': log_record
+                        }
+                        for log_record in logs_buffer
+                    )
                 eshelpers.bulk(
                     client=self.__get_es_client(),
                     actions=actions,
