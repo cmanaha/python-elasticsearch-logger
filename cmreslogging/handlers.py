@@ -205,7 +205,7 @@ class CMRESHandler(logging.Handler):
     def __schedule_flush(self):
         if self._timer is None:
             self._timer = Timer(self.flush_frequency_in_sec, self.flush)
-            self._timer.setDaemon(True)
+            self._timer.daemon = True
             self._timer.start()
 
     def __get_es_client(self):
