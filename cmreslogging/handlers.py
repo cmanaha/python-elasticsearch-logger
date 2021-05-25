@@ -151,6 +151,7 @@ class CMRESHandler(logging.Handler):
         es_additional_fields=__DEFAULT_ADDITIONAL_FIELDS,
         raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_EXCEPTION,
         default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME,
+        disabled_fields=[],
     ):
         """Handler constructor
 
@@ -185,6 +186,7 @@ class CMRESHandler(logging.Handler):
                     to the logs, such the application, environment, etc.
         :param raise_on_indexing_exceptions: A boolean, True only for debugging purposes to raise exceptions
                     caused when
+        :param disabled_fields: A array, by default empty, but if you want to remove any key , put here
         :return: A ready to be used CMRESHandler.
         """
         logging.Handler.__init__(self)
@@ -203,6 +205,7 @@ class CMRESHandler(logging.Handler):
         self.index_name_frequency = index_name_frequency
         self.es_doc_type = es_doc_type
         self.es_additional_fields = es_additional_fields.copy()
+        self.disabled_fields = disabled_fields
 
         # disable it from elasticsearch log
         # self.es_additional_fields.update({'host': socket.gethostname(),
@@ -321,6 +324,8 @@ class CMRESHandler(logging.Handler):
             try:
                 with self._buffer_lock:
                     logs_buffer = self._buffer
+                    print(f"gustavo: => {logs_buffer}")
+                    print(f"disable fields => {self.disabled_fields}")
                     self._buffer = []
                 actions = (
                     {
