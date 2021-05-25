@@ -151,7 +151,7 @@ class CMRESHandler(logging.Handler):
         es_additional_fields=__DEFAULT_ADDITIONAL_FIELDS,
         raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_EXCEPTION,
         default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME,
-        disabled_fields=[],
+        disabled_fields: tuple = (),
     ):
         """Handler constructor
 
@@ -186,7 +186,7 @@ class CMRESHandler(logging.Handler):
                     to the logs, such the application, environment, etc.
         :param raise_on_indexing_exceptions: A boolean, True only for debugging purposes to raise exceptions
                     caused when
-        :param disabled_fields: A array, by default empty, but if you want to remove any key , put here
+        :param disabled_fields: A tuple, by default empty, but if you want to remove any key , put here
         :return: A ready to be used CMRESHandler.
         """
         logging.Handler.__init__(self)
@@ -323,9 +323,22 @@ class CMRESHandler(logging.Handler):
         if self._buffer:
             try:
                 with self._buffer_lock:
-                    logs_buffer = self._buffer
-                    print(f"gustavo: => {logs_buffer}")
-                    print(f"disable fields => {self.disabled_fields}")
+                    if not self.disabled_fields:
+                        logs_buffer = self._buffer
+                    else:
+                        logs_buffer = []
+
+                        for d in self._buffer:
+                            result = map(
+                                d.__delitem__,
+                                filter(d.__contains__, self.disabled_fields),
+                            )
+                            logs_buffer.append(result)
+                        # print(d)
+
+                        # print(f"gustavo: => {logs_buffer}")
+                        # print(f"disable fields => {self.disabled_fields}")
+
                     self._buffer = []
                 actions = (
                     {
