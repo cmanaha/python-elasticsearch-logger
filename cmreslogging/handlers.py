@@ -312,6 +312,13 @@ class CMRESHandler(logging.Handler):
             int(current_date.microsecond / 1000),
         )
 
+    def del_all(self, mapping):
+        """Remove list of elements from mapping.
+        :return: list"""
+        for key in self.disabled_fields:
+            del mapping[key]
+        return mapping
+
     def flush(self):
         """Flushes the buffer into ES
         :return: None
@@ -326,18 +333,7 @@ class CMRESHandler(logging.Handler):
                     if not self.disabled_fields:
                         logs_buffer = self._buffer
                     else:
-                        logs_buffer = []
-
-                        for d in self._buffer:
-                            result = map(
-                                d.__delitem__,
-                                filter(d.__contains__, self.disabled_fields),
-                            )
-                            logs_buffer.append(result)
-                        # print(d)
-
-                        # print(f"gustavo: => {logs_buffer}")
-                        # print(f"disable fields => {self.disabled_fields}")
+                        logs_buffer = [self.del_all(i) for i in self._buffer]
 
                     self._buffer = []
                 actions = (
