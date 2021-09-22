@@ -292,7 +292,7 @@ class CMRESHandler(logging.Handler):
                 actions = (
                     {
                         '_index': self._index_name_func.__func__(self.es_index_name),
-                        '_type': self.es_doc_type,
+                        # '_type': self.es_doc_type,  #Remove to resolve Issue #76 (ElasticsearchDeprecationWarning: [types removal] Specifying types in bulk requests is deprecated.)
                         '_source': log_record
                     }
                     for log_record in logs_buffer
