@@ -42,12 +42,12 @@ This library requires the following dependencies
 
 Additional requirements for Kerberos support
 ============================================
-Additionally, the package support optionally kerberos authentication by adding the following dependecy
+Additionally, the package support optionally kerberos authentication by adding the following dependency
  - requests-kerberos
 
 Additional requirements for AWS IAM user authentication (request signing)
 =========================================================================
-Additionally, the package support optionally AWS IAM user authentication by adding the following dependecy
+Additionally, the package support optionally AWS IAM user authentication by adding the following dependency
  - requests-aws4auth
 
 Using the handler in  your program
@@ -55,7 +55,7 @@ Using the handler in  your program
 To initialise and create the handler, just add the handler to your logger as follow ::
 
     from cmreslogging.handlers import CMRESHandler
-    handler = CMRESHandler(hosts=[{'host': 'localhost', 'port': 9200}],
+    handler = CMRESHandler(hosts=[{'host': 'localhost', 'port': 9200, 'scheme': 'http'}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
                                es_index_name="my_python_index")
     log = logging.getLogger("PythonTest")
@@ -65,7 +65,7 @@ To initialise and create the handler, just add the handler to your logger as fol
 You can add fields upon initialisation, providing more data of the execution context ::
 
     from cmreslogging.handlers import CMRESHandler
-    handler = CMRESHandler(hosts=[{'host': 'localhost', 'port': 9200}],
+    handler = CMRESHandler(hosts=[{'host': 'localhost', 'port': 9200, 'scheme': 'http'}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
                                es_index_name="my_python_index",
                                es_additional_fields={'App': 'MyAppName', 'Environment': 'Dev'})
@@ -95,9 +95,11 @@ Kibana on top of elasticsearch
 Initialisation parameters
 =========================
 The constructors takes the following parameters:
- - hosts:  The list of hosts that elasticsearch clients will connect, multiple hosts are allowed, for example ::
+  - hosts:  The list of hosts that elasticsearch clients will connect, multiple hosts are allowed.
+   Use ```'scheme'``` to determinate if use SSL (`use_ssl` is deprecated). To use SSL set ```'scheme': 'https'```, or if you don't need SSL Sset ```'scheme': 'http'```.
+   for example::
 
-    [{'host':'host1','port':9200}, {'host':'host2','port':9200}]
+    [{'host':'host1','port':9200, 'scheme': 'https'}, {'host':'host2','port':9200, 'scheme': 'http'}]
 
 
  - auth_type: The authentication currently support CMRESHandler.AuthType = NO_AUTH, BASIC_AUTH, KERBEROS_AUTH
@@ -105,7 +107,6 @@ The constructors takes the following parameters:
  - aws_access_key: When ``CMRESHandler.AuthType.AWS_SIGNED_AUTH`` is used this argument must contain the AWS key id of the  the AWS IAM user
  - aws_secret_key: When ``CMRESHandler.AuthType.AWS_SIGNED_AUTH`` is used this argument must contain the AWS secret key of the  the AWS IAM user
  - aws_region: When ``CMRESHandler.AuthType.AWS_SIGNED_AUTH`` is used this argument must contain the AWS region of the  the AWS Elasticsearch servers, for example ``'us-east'``
- - use_ssl: A boolean that defines if the communications should use SSL encrypted communication
  - verify_ssl: A boolean that defines if the SSL certificates are validated or not
  - buffer_size: An int, Once this size is reached on the internal buffer results are flushed into ES
  - flush_frequency_in_sec: A float representing how often and when the buffer will be flushed
@@ -139,7 +140,7 @@ they can be plotted on Kibana, or the SQL statements that Django executed. ::
             'elasticsearch': {
                 'level': 'DEBUG',
                 'class': 'cmreslogging.handlers.CMRESHandler',
-                'hosts': [{'host': 'localhost', 'port': 9200}],
+                'hosts': [{'host': 'localhost', 'port': 9200, 'scheme': 'http'}],
                 'es_index_name': 'my_python_app',
                 'es_additional_fields': {'App': 'Test', 'Environment': 'Dev'},
                 'auth_type': CMRESHandler.AuthType.NO_AUTH,
