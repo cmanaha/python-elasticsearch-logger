@@ -7,7 +7,7 @@ import socket
 from threading import Timer, Lock
 from enum import Enum
 from elasticsearch import helpers as eshelpers
-from elasticsearch import Elasticsearch, RequestsHttpConnection
+from elasticsearch import Elasticsearch
 
 try:
     from requests_kerberos import HTTPKerberosAuth, DISABLED
@@ -58,13 +58,12 @@ class CMRESHandler(logging.Handler):
         YEARLY = 3
 
     # Defaults for the class
-    __DEFAULT_ELASTICSEARCH_HOST = [{'host': 'localhost', 'port': 9200}]
+    __DEFAULT_ELASTICSEARCH_HOST = [{'host': 'localhost', 'port': 9200, 'scheme': 'http'}]
     __DEFAULT_AUTH_USER = ''
     __DEFAULT_AUTH_PASSWD = ''
     __DEFAULT_AWS_ACCESS_KEY = ''
     __DEFAULT_AWS_SECRET_KEY = ''
     __DEFAULT_AWS_REGION = ''
-    __DEFAULT_USE_SSL = False
     __DEFAULT_VERIFY_SSL = True
     __DEFAULT_AUTH_TYPE = AuthType.NO_AUTH
     __DEFAULT_INDEX_FREQUENCY = IndexNameFrequency.DAILY
@@ -129,7 +128,6 @@ class CMRESHandler(logging.Handler):
                  aws_secret_key=__DEFAULT_AWS_SECRET_KEY,
                  aws_region=__DEFAULT_AWS_REGION,
                  auth_type=__DEFAULT_AUTH_TYPE,
-                 use_ssl=__DEFAULT_USE_SSL,
                  verify_ssl=__DEFAULT_VERIFY_SSL,
                  buffer_size=__DEFAULT_BUFFER_SIZE,
                  flush_frequency_in_sec=__DEFAULT_FLUSH_FREQ_INSEC,
@@ -142,11 +140,13 @@ class CMRESHandler(logging.Handler):
         """ Handler constructor
 
         :param hosts: The list of hosts that elasticsearch clients will connect. The list can be provided
-                    in the format ```[{'host':'host1','port':9200}, {'host':'host2','port':9200}]``` to
-                    make sure the client supports failover of one of the instertion nodes
-        :param auth_details: When ```CMRESHandler.AuthType.BASIC_AUTH``` is used this argument must contain
-                    a tuple of string with the user and password that will be used to authenticate against
-                    the Elasticsearch servers, for example```('User','Password')
+                    in the format ```[{'host':'host1','port':9200, 'scheme': 'http'},
+                    {'host':'host2','port':9200, 'scheme': 'https'}]``` to make sure the client supports
+                    failover of one of the insertion nodes
+        :param auth_details: When ```CMRESHandler.AuthType.BASIC_AUTH``` or ```CMRESHandler.AuthType.NTLM_AUTH```
+                    is used this argument must contain a tuple of string with the user and password
+                    that will be used to authenticate against the Elasticsearch servers,
+                    for example```('User','Password')
         :param aws_access_key: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
                     the AWS key id of the  the AWS IAM user
         :param aws_secret_key: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
@@ -155,7 +155,6 @@ class CMRESHandler(logging.Handler):
                     the AWS region of the  the AWS Elasticsearch servers, for example```'us-east'
         :param auth_type: The authentication type to be used in the connection ```CMRESHandler.AuthType```
                     Currently, NO_AUTH, BASIC_AUTH, KERBEROS_AUTH are supported
-        :param use_ssl: A boolean that defines if the communications should use SSL encrypted communication
         :param verify_ssl: A boolean that defines if the SSL certificates are validated or not
         :param buffer_size: An int, Once this size is reached on the internal buffer results are flushed into ES
         :param flush_frequency_in_sec: A float representing how often and when the buffer will be flushed, even
@@ -182,7 +181,6 @@ class CMRESHandler(logging.Handler):
         self.aws_secret_key = aws_secret_key
         self.aws_region = aws_region
         self.auth_type = auth_type
-        self.use_ssl = use_ssl
         self.verify_certs = verify_ssl
         self.buffer_size = buffer_size
         self.flush_frequency_in_sec = flush_frequency_in_sec
@@ -212,9 +210,7 @@ class CMRESHandler(logging.Handler):
         if self.auth_type == CMRESHandler.AuthType.NO_AUTH:
             if self._client is None:
                 self._client = Elasticsearch(hosts=self.hosts,
-                                             use_ssl=self.use_ssl,
                                              verify_certs=self.verify_certs,
-                                             connection_class=RequestsHttpConnection,
                                              serializer=self.serializer)
             return self._client
 
@@ -222,9 +218,7 @@ class CMRESHandler(logging.Handler):
             if self._client is None:
                 return Elasticsearch(hosts=self.hosts,
                                      http_auth=self.auth_details,
-                                     use_ssl=self.use_ssl,
                                      verify_certs=self.verify_certs,
-                                     connection_class=RequestsHttpConnection,
                                      serializer=self.serializer)
             return self._client
 
@@ -233,11 +227,10 @@ class CMRESHandler(logging.Handler):
                 raise EnvironmentError("Kerberos module not available. Please install \"requests-kerberos\"")
             # For kerberos we return a new client each time to make sure the tokens are up to date
             return Elasticsearch(hosts=self.hosts,
-                                 use_ssl=self.use_ssl,
                                  verify_certs=self.verify_certs,
-                                 connection_class=RequestsHttpConnection,
                                  http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED),
-                                 serializer=self.serializer)
+                                 serializer=self.serializer,
+                                 node_class='requests')
 
         if self.auth_type == CMRESHandler.AuthType.AWS_SIGNED_AUTH:
             if not AWS4AUTH_SUPPORTED:
@@ -247,9 +240,7 @@ class CMRESHandler(logging.Handler):
                 self._client = Elasticsearch(
                     hosts=self.hosts,
                     http_auth=awsauth,
-                    use_ssl=self.use_ssl,
                     verify_certs=True,
-                    connection_class=RequestsHttpConnection,
                     serializer=self.serializer
                 )
             return self._client

@@ -3,6 +3,7 @@ import logging
 import time
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath('.'))
 from cmreslogging.handlers import CMRESHandler
 
@@ -10,15 +11,20 @@ from cmreslogging.handlers import CMRESHandler
 class CMRESHandlerTestCase(unittest.TestCase):
     DEFAULT_ES_SERVER = 'localhost'
     DEFAULT_ES_PORT = 9200
+    DEFAULT_ES_SSL_SCHEME = 'http'
 
     def getESHost(self):
-        return os.getenv('TEST_ES_SERVER',CMRESHandlerTestCase.DEFAULT_ES_SERVER)
+        return os.getenv('TEST_ES_SERVER', CMRESHandlerTestCase.DEFAULT_ES_SERVER)
 
     def getESPort(self):
         try:
-            return int(os.getenv('TEST_ES_PORT',CMRESHandlerTestCase.DEFAULT_ES_PORT))
+            return int(os.getenv('TEST_ES_PORT', CMRESHandlerTestCase.DEFAULT_ES_PORT))
         except ValueError:
             return CMRESHandlerTestCase.DEFAULT_ES_PORT
+
+    @staticmethod
+    def get_ES_scheme():
+        return os.getenv('TEST_ES_SSL_SCHEME', CMRESHandlerTestCase.DEFAULT_ES_SSL_SCHEME)
 
     def setUp(self):
         self.log = logging.getLogger("MyTestCase")
@@ -29,18 +35,20 @@ class CMRESHandlerTestCase(unittest.TestCase):
         del self.log
 
     def test_ping(self):
-        handler = CMRESHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
+        handler = CMRESHandler(hosts=[{'host': self.getESHost(),
+                                       'port': self.getESPort(),
+                                       'scheme': self.get_ES_scheme()}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
                                es_index_name="pythontest",
-                               use_ssl=False,
                                raise_on_indexing_exceptions=True)
         es_test_server_is_up = handler.test_es_source()
         self.assertEqual(True, es_test_server_is_up)
 
     def test_buffered_log_insertion_flushed_when_buffer_full(self):
-        handler = CMRESHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
+        handler = CMRESHandler(hosts=[{'host': self.getESHost(),
+                                       'port': self.getESPort(),
+                                       'scheme': self.get_ES_scheme()}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
-                               use_ssl=False,
                                buffer_size=2,
                                flush_frequency_in_sec=1000,
                                es_index_name="pythontest",
@@ -61,9 +69,10 @@ class CMRESHandlerTestCase(unittest.TestCase):
 
     def test_es_log_extra_argument_insertion(self):
         self.log.info("About to test elasticsearch insertion")
-        handler = CMRESHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
+        handler = CMRESHandler(hosts=[{'host': self.getESHost(),
+                                       'port': self.getESPort(),
+                                       'scheme': self.get_ES_scheme()}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
-                               use_ssl=False,
                                es_index_name="pythontest",
                                es_additional_fields={'App': 'Test', 'Environment': 'Dev'},
                                raise_on_indexing_exceptions=True)
@@ -84,9 +93,10 @@ class CMRESHandlerTestCase(unittest.TestCase):
         self.assertEqual(0, len(handler._buffer))
 
     def test_buffered_log_insertion_after_interval_expired(self):
-        handler = CMRESHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
+        handler = CMRESHandler(hosts=[{'host': self.getESHost(),
+                                       'port': self.getESPort(),
+                                       'scheme': self.get_ES_scheme()}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
-                               use_ssl=False,
                                flush_frequency_in_sec=0.1,
                                es_index_name="pythontest",
                                es_additional_fields={'App': 'Test', 'Environment': 'Dev'},
@@ -108,9 +118,10 @@ class CMRESHandlerTestCase(unittest.TestCase):
         self.assertEqual(0, len(handler._buffer))
 
     def test_fast_insertion_of_hundred_logs(self):
-        handler = CMRESHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
+        handler = CMRESHandler(hosts=[{'host': self.getESHost(),
+                                       'port': self.getESPort(),
+                                       'scheme': self.get_ES_scheme()}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
-                               use_ssl=False,
                                buffer_size=500,
                                flush_frequency_in_sec=0.5,
                                es_index_name="pythontest",
@@ -125,10 +136,11 @@ class CMRESHandlerTestCase(unittest.TestCase):
 
     def test_index_name_frequency_functions(self):
         index_name = "pythontest"
-        handler = CMRESHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
+        handler = CMRESHandler(hosts=[{'host': self.getESHost(),
+                                       'port': self.getESPort(),
+                                       'scheme': self.get_ES_scheme()}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
                                es_index_name=index_name,
-                               use_ssl=False,
                                index_name_frequency=CMRESHandler.IndexNameFrequency.DAILY,
                                raise_on_indexing_exceptions=True)
         self.assertEqual(
@@ -136,10 +148,11 @@ class CMRESHandlerTestCase(unittest.TestCase):
             CMRESHandler._get_daily_index_name(index_name)
         )
 
-        handler = CMRESHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
+        handler = CMRESHandler(hosts=[{'host': self.getESHost(),
+                                       'port': self.getESPort(),
+                                       'scheme': self.get_ES_scheme()}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
                                es_index_name=index_name,
-                               use_ssl=False,
                                index_name_frequency=CMRESHandler.IndexNameFrequency.WEEKLY,
                                raise_on_indexing_exceptions=True)
         self.assertEqual(
@@ -147,10 +160,11 @@ class CMRESHandlerTestCase(unittest.TestCase):
             CMRESHandler._get_weekly_index_name(index_name)
         )
 
-        handler = CMRESHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
+        handler = CMRESHandler(hosts=[{'host': self.getESHost(),
+                                       'port': self.getESPort(),
+                                       'scheme': self.get_ES_scheme()}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
                                es_index_name=index_name,
-                               use_ssl=False,
                                index_name_frequency=CMRESHandler.IndexNameFrequency.MONTHLY,
                                raise_on_indexing_exceptions=True)
         self.assertEqual(
@@ -158,10 +172,11 @@ class CMRESHandlerTestCase(unittest.TestCase):
             CMRESHandler._get_monthly_index_name(index_name)
         )
 
-        handler = CMRESHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
+        handler = CMRESHandler(hosts=[{'host': self.getESHost(),
+                                       'port': self.getESPort(),
+                                       'scheme': self.get_ES_scheme()}],
                                auth_type=CMRESHandler.AuthType.NO_AUTH,
                                es_index_name=index_name,
-                               use_ssl=False,
                                index_name_frequency=CMRESHandler.IndexNameFrequency.YEARLY,
                                raise_on_indexing_exceptions=True)
         self.assertEqual(
