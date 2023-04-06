@@ -21,6 +21,12 @@ try:
 except ImportError:
     AWS4AUTH_SUPPORTED = False
 
+try:
+    from requests_ntlm import HttpNtlmAuth
+    NTLM_AUTH_SUPPORTED = True
+except ImportError:
+    NTLM_AUTH_SUPPORTED = False
+
 from cmreslogging.serializers import CMRESSerializer
 
 
@@ -43,6 +49,7 @@ class CMRESHandler(logging.Handler):
         BASIC_AUTH = 1
         KERBEROS_AUTH = 2
         AWS_SIGNED_AUTH = 3
+        NTLM_AUTH = 4
 
     class IndexNameFrequency(Enum):
         """ Index type supported
@@ -253,6 +260,20 @@ class CMRESHandler(logging.Handler):
                     serializer=self.serializer
                 )
             return self._client
+
+        if self.auth_type == CMRESHandler.AuthType.NTLM_AUTH:
+            if not NTLM_AUTH_SUPPORTED:
+                raise EnvironmentError("HttpNtlmAuth not available. Please install \"requests_ntlm\"")
+            if self._client is None:
+                ntlm_auth = HttpNtlmAuth(username=self.auth_details[0],
+                                         password=self.auth_details[1])
+                return Elasticsearch(hosts=self.hosts,
+                                     http_auth=ntlm_auth,
+                                     verify_certs=self.verify_certs,
+                                     serializer=self.serializer,
+                                     node_class='requests')
+            return self._client
+
 
         raise ValueError("Authentication method not supported")
 
