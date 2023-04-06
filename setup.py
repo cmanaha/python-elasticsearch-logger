@@ -9,7 +9,6 @@ from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
 from os import path
-import sys
 
 here = path.abspath(path.dirname(__file__))
 
@@ -21,10 +20,6 @@ dependencies = [
     'elasticsearch',
     'requests'
 ]
-
-# If python version is above 3.4 (built in enums supported enums)
-if sys.version_info <= (3,4):
-    dependencies.append('enum')
 
 print("List of dependencies : {0}".format(str(dependencies)))
 
@@ -67,7 +62,6 @@ setup(
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.6',
     ],
 

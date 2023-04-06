@@ -26,14 +26,6 @@ Install using pip::
 
     pip install CMRESHandler
 
-Requirements Python 2
-=====================
-This library requires the following dependencies
- - elasticsearch
- - requests
- - enum
-
-
 Requirements Python 3
 =====================
 This library requires the following dependencies
