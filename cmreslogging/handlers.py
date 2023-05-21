@@ -7,7 +7,7 @@ import socket
 from threading import Timer, Lock
 from enum import Enum
 from elasticsearch import helpers as eshelpers
-from elasticsearch import Elasticsearch, RequestsHttpConnection
+from elasticsearch import Elasticsearch
 
 try:
     from requests_kerberos import HTTPKerberosAuth, DISABLED
@@ -212,9 +212,8 @@ class CMRESHandler(logging.Handler):
         if self.auth_type == CMRESHandler.AuthType.NO_AUTH:
             if self._client is None:
                 self._client = Elasticsearch(hosts=self.hosts,
-                                             use_ssl=self.use_ssl,
+                                             http_compress=True,
                                              verify_certs=self.verify_certs,
-                                             connection_class=RequestsHttpConnection,
                                              serializer=self.serializer)
             return self._client
 
@@ -222,9 +221,8 @@ class CMRESHandler(logging.Handler):
             if self._client is None:
                 return Elasticsearch(hosts=self.hosts,
                                      http_auth=self.auth_details,
-                                     use_ssl=self.use_ssl,
+                                     http_compress=True,
                                      verify_certs=self.verify_certs,
-                                     connection_class=RequestsHttpConnection,
                                      serializer=self.serializer)
             return self._client
 
@@ -233,9 +231,8 @@ class CMRESHandler(logging.Handler):
                 raise EnvironmentError("Kerberos module not available. Please install \"requests-kerberos\"")
             # For kerberos we return a new client each time to make sure the tokens are up to date
             return Elasticsearch(hosts=self.hosts,
-                                 use_ssl=self.use_ssl,
+                                 http_compress=True,
                                  verify_certs=self.verify_certs,
-                                 connection_class=RequestsHttpConnection,
                                  http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED),
                                  serializer=self.serializer)
 
@@ -247,9 +244,8 @@ class CMRESHandler(logging.Handler):
                 self._client = Elasticsearch(
                     hosts=self.hosts,
                     http_auth=awsauth,
-                    use_ssl=self.use_ssl,
+                    http_compress=True,
                     verify_certs=True,
-                    connection_class=RequestsHttpConnection,
                     serializer=self.serializer
                 )
             return self._client
