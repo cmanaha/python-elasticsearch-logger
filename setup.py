@@ -29,7 +29,7 @@ if sys.version_info <= (3,4):
 print("List of dependencies : {0}".format(str(dependencies)))
 
 setup(
-    name='CMRESHandler',
+    name='CycoCMRESHandler',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
