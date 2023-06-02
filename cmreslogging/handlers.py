@@ -51,11 +51,13 @@ class CMRESHandler(logging.Handler):
         - Weekly indices
         - Monthly indices
         - Year indices
+        - Append to one index
         """
         DAILY = 0
         WEEKLY = 1
         MONTHLY = 2
         YEARLY = 3
+        NONE = 4
 
     # Defaults for the class
     __DEFAULT_ELASTICSEARCH_HOST = [{'host': 'localhost', 'port': 9200}]
@@ -115,11 +117,20 @@ class CMRESHandler(logging.Handler):
         """
         return "{0!s}-{1!s}".format(es_index_name, datetime.datetime.now().strftime('%Y'))
 
+    @staticmethod
+    def _get_base_index_name(es_index_name):
+        """ Return elasticsearch index name
+        :param: index_name the prefix to be used in the index
+        :return: A srting containing the elasticsearch indexname used which should not include the date in any format
+        """
+        return es_index_name
+
     _INDEX_FREQUENCY_FUNCION_DICT = {
         IndexNameFrequency.DAILY: _get_daily_index_name,
         IndexNameFrequency.WEEKLY: _get_weekly_index_name,
         IndexNameFrequency.MONTHLY: _get_monthly_index_name,
-        IndexNameFrequency.YEARLY: _get_yearly_index_name
+        IndexNameFrequency.YEARLY: _get_yearly_index_name,
+        IndexNameFrequency.NONE:  _get_base_index_name,
     }
 
     def __init__(self,
